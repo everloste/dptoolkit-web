@@ -5,15 +5,17 @@
 			<li>
 				<a href="">{{> svg/datapack }} Datapack config</a>
 			</li>
-			<li>
-				<a href="">{{> svg/structure }} Structure sets</a>
-			</li>
-			<li>
-				<a href="">{{> svg/biome }} Biome providers</a>
-			</li>
-			<li>
-				<a href="">{{> svg/loot }} Loot tables</a>
-			</li>
+				<template>
+				<li>
+					<a href="">{{> svg/structure }} Structure sets</a>
+				</li>
+				<li>
+					<a href="">{{> svg/biome }} Biome providers</a>
+				</li>
+				<li>
+					<a href="">{{> svg/loot }} Loot tables</a>
+				</li>
+			</template>
 		</ul>
 	</div>
 </div>
@@ -22,6 +24,10 @@
 	.arrow {
 		transform: rotate(-90deg);
 		transition: transform var(--ease-out-circ) 0.25s;
+	}
+
+	#config-screen-select {
+		cursor: pointer;
 	}
 
 	.dropdown {
