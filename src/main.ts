@@ -13,7 +13,6 @@ datapackStore.addEventListener("datapacksChanged", updateDatapackDisplay, { pass
 async function onFileUploaded(e: Event) {
 	const fileList = (e.target as HTMLInputElement).files;
 	if (!fileList) return;
-	console.time("Loaded files");
 	const acceptedTypes = [
 		"application/zip",
 		"application/java-archive",
@@ -23,24 +22,23 @@ async function onFileUploaded(e: Event) {
 	if (zipFiles.length == 0) {
 		window.alert("Couldn't add selected files, they may not be datapacks.");
 	}
+
+	// load datapacks as objects
 	const datapacks = await Promise.all(zipFiles.map(loadDatapack));
 	const validDatapacks = datapacks.filter((dp) => dp instanceof Object);
 	
+	// detect loaded packs that do not have a config file
 	let datapacksWithoutConfig: Array<string> = [];
-	
 	validDatapacks.forEach(element => {
 		if (element.rawConfig === undefined || Object.keys(element.rawConfig).length === 0) {
 			datapacksWithoutConfig.push(element.file_name);
 		}
 	});
-
 	if (datapacksWithoutConfig.length !== 0) {
 		window.alert(`The following packs do not contain a config file: ${datapacksWithoutConfig.toString()}. Try contacting their authors to see if they'd like to add Datapack Toolkit support.`);
 	}
 
-
-	console.timeEnd("Loaded files");
-
+	// add packs to store and finalise there
 	getStructureSets(validDatapacks);
 	datapackStore.add(validDatapacks);
 }
