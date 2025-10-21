@@ -1,29 +1,28 @@
 <dialog class="datapack-browser" open>
-	<h2>
-		Add datapacks from Modrinth
-	</h2>
+	<h2>Add datapacks from Modrinth</h2>
 
-	<p>
-		Only datapacks known to support Datapack Toolkit are shown.
-	</p>
+	<p>Only datapacks known to support Datapack Toolkit are shown.</p>
 
 	<p>
 		<input type="text" placeholder="Search for datapacks..." />
 	</p>
 
-	<div class="pack-download-list">
-		<template id="PACK-DOWNLOAD-ITEM-TEMPLATE">
-			<label class="list-item" for="id123">
-				<img src="https://cdn.modrinth.com/data/hl5OLM95/6846fa80f84d2baa0dd07f8ee65b6f10bf223a84_96.webp" />
-				<p><b><span class="-name">Geophilic</span></b> by <span class="-author">bebebea_loste</span><br><span class="-desc">A subtle-ish overhaul of vanilla Overworld biomes! Reworked!</span></p>
-				<input type="checkbox" id="id123" hidden />
-			</label>
-		</template>
-	</div>
+	<div class="pack-download-list"></div>
+	<template id="PACK-DOWNLOAD-ITEM-TEMPLATE">
+		<label class="list-item" for="id123">
+			<img
+				src="https://cdn.modrinth.com/data/hl5OLM95/6846fa80f84d2baa0dd07f8ee65b6f10bf223a84_96.webp" />
+			<p>
+				<b><span class="-name">Geophilic</span></b> by <span class="-author">bebebea_loste</span
+				><br /><span class="-desc"
+					>A subtle-ish overhaul of vanilla Overworld biomes! Reworked!</span
+				>
+			</p>
+			<input type="checkbox" id="id123" hidden />
+		</label>
+	</template>
 
-	<br>
+	<br />
 
-	<button>
-		Download packs
-	</button>
+	<button>Download packs</button>
 </dialog>

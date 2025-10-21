@@ -30,17 +30,16 @@
 				</label>
 
 				<!---------- DATAPACK LIST ---------->
-				<div id="datapack-display">
-					<template id="datapack-template">
-						<div class="datapack">
-							<img alt="" />
-							<div class="name-and-description">
-								<h3 class="name"></h3>
-								<p class="description"></p>
-							</div>
+				<div id="datapack-display"></div>
+				<template id="datapack-template">
+					<div class="datapack">
+						<img alt="" />
+						<div class="name-and-description">
+							<h3 class="name"></h3>
+							<p class="description"></p>
 						</div>
-					</template>
-				</div>
+					</div>
+				</template>
 
 				{{> export-settings }}
 				<button type="button" id="export-button">{{> svg/export }} Export datapack(s)...</button>
