@@ -25,6 +25,20 @@ async function onFileUploaded(e: Event) {
 	}
 	const datapacks = await Promise.all(zipFiles.map(loadDatapack));
 	const validDatapacks = datapacks.filter((dp) => dp instanceof Object);
+	
+	let datapacksWithoutConfig: Array<string> = [];
+	
+	validDatapacks.forEach(element => {
+		if (element.rawConfig === undefined || Object.keys(element.rawConfig).length === 0) {
+			datapacksWithoutConfig.push(element.file_name);
+		}
+	});
+
+	if (datapacksWithoutConfig.length !== 0) {
+		window.alert(`The following packs do not contain a config file: ${datapacksWithoutConfig.toString()}. Try contacting their authors to see if they'd like to add Datapack Toolkit support.`);
+	}
+
+
 	console.timeEnd("Loaded files");
 
 	getStructureSets(validDatapacks);
@@ -132,5 +146,7 @@ function exportButtonClicked() {
 		document.getElementById("progress-indicator")!.hidden = true;
 	});
 }
+
+////////// start //////////
 
 showIntroIfNotShown();

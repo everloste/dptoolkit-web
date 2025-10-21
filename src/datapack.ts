@@ -14,7 +14,7 @@ export interface Datapack {
 	icon: Blob | undefined;
 	mcmeta: Record<string, unknown>;
 	zip: JSZip;
-	rawConfig: unknown | undefined | object;
+	rawConfig: undefined | object;
 	instancedConfig: undefined | ConfigClass;
 	modules: Set<Module>;
 }
