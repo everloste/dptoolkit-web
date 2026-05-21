@@ -36,9 +36,10 @@ async function onFileUploaded(e: Event) {
 	});
 	if (datapacksWithoutConfig.length !== 0) {
 		window.alert(
-			`The following packs do not contain a config file:\n\n${datapacksWithoutConfig.join(
-				"\n"
-			)}\n\nTry contacting their authors to see if they'd like to add Datapack Toolkit support.`
+			`The following packs do not contain a config file:
+${datapacksWithoutConfig.join("\n")}
+
+Try contacting their authors to see if they'd like to add Datapack Toolkit support.`,
 		);
 	}
 
@@ -74,7 +75,10 @@ function createDatapackDisplayElement(dp: Datapack): DocumentFragment {
 	return clone;
 }
 
-function getNameAndDescription(mcmeta: any): { name: string; description: string } {
+function getNameAndDescription(mcmeta: any): {
+	name: string;
+	description: string;
+} {
 	let name = mcmeta.pack.name;
 	let description = descriptionToDisplayable(mcmeta.pack.description);
 

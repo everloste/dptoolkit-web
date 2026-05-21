@@ -1,4 +1,4 @@
-import {type DatapackChangeMethod, DatapackChangeMethods} from "./modifications.ts";
+import { type DatapackChangeMethod, DatapackChangeMethods } from "./modifications.ts";
 
 export interface ConfigDefinition {
 	meta: {
@@ -7,13 +7,18 @@ export interface ConfigDefinition {
 		id?: string;
 	};
 	widgets: Array<WidgetDefinition>;
-	methods: { [key: string]: ConfigMethod; };
+	methods: { [key: string]: ConfigMethod };
 }
 
 ////////// WIDGET OBJECT DEFINITIONS //////////
 
 export type InputWidgetDefinition = NumberWidget | SliderWidget | SwitchWidget;
-export type WidgetDefinition = TextWidget | ImageWidget | NumberWidget | SliderWidget | SwitchWidget;
+export type WidgetDefinition =
+	| TextWidget
+	| ImageWidget
+	| NumberWidget
+	| SliderWidget
+	| SwitchWidget;
 export const inputTypes: ReadonlyArray<string> = ["number", "slider", "switch"];
 
 type TextWidget = {
@@ -80,37 +85,42 @@ export type SwitchWidget = {
 
 // CONFIG METHOD
 export type ConfigMethod = {
-    value: Transformer;
-    accessors: Array<Accessor>;
-}
-    // ACCESSOR
-    export type Accessor = {
-        method: DatapackChangeMethod;
-        file_path: string | Array<string>;
-        value_path: string;
-		value?: Transformer;
-    };
-    export const AccessorMethods: ReadonlyArray<string> = DatapackChangeMethods;
+	value: Transformer;
+	accessors: Array<Accessor>;
+};
+// ACCESSOR
+export type Accessor = {
+	method: DatapackChangeMethod;
+	file_path: string | Array<string>;
+	value_path: string;
+	value?: Transformer;
+};
+export const AccessorMethods: ReadonlyArray<string> = DatapackChangeMethods;
 
-    // TRANSFORMER
-    export type Transformer = string | number | IfElseTransformer | MathTransformerWithTwoArgs | MathTransformerWithSingleArg;
+// TRANSFORMER
+export type Transformer =
+	| string
+	| number
+	| IfElseTransformer
+	| MathTransformerWithTwoArgs
+	| MathTransformerWithSingleArg;
 
-    type MathTransformerWithTwoArgs = {
-        function: "add" | "multiply";
-        argument: Transformer;
-        argument1: Transformer;
-    }
+type MathTransformerWithTwoArgs = {
+	function: "add" | "multiply";
+	argument: Transformer;
+	argument1: Transformer;
+};
 
-    type MathTransformerWithSingleArg = {
-        function: "int" | "square" | "square_root";
-        argument: Transformer;
-    }
+type MathTransformerWithSingleArg = {
+	function: "int" | "square" | "square_root";
+	argument: Transformer;
+};
 
-    type IfElseTransformer = {
-        function: "if_else";
-        argument: Transformer;
-        argument1: Transformer;
-        operator: "==" | ">=" | ">";
-        true: Transformer;
-        false: Transformer;
-    }
+type IfElseTransformer = {
+	function: "if_else";
+	argument: Transformer;
+	argument1: Transformer;
+	operator: "==" | ">=" | ">";
+	true: Transformer;
+	false: Transformer;
+};

@@ -51,7 +51,7 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 	if (modules.has(Modules.DPCONFIG)) config = await loadDpConfig(zip);
 
 	let pack_id = mcmeta.pack.id || file.name;
-	pack_id = pack_id + Math.round(Math.random()*100);
+	pack_id = pack_id + Math.round(Math.random() * 100);
 
 	let new_pack: Datapack = {
 		file_name: file.name,

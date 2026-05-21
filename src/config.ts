@@ -1,22 +1,21 @@
 import JSZip from "jszip";
 import DOMPurify from "dompurify";
-import type {Datapack} from "./datapack";
-import {DatapackModifierInstance} from "./datapack_changes";
-import type {DatapackChangeMethod, DatapackChangeValue} from "./types/modifications.ts";
+import type { Datapack } from "./datapack";
+import { DatapackModifierInstance } from "./datapack_changes";
+import type { DatapackChangeMethod, DatapackChangeValue } from "./types/modifications.ts";
 import {
-    type Accessor,
-    AccessorMethods,
-    type ConfigDefinition,
-    inputTypes,
-    type InputWidgetDefinition,
-    type ConfigMethod,
-    type NumberWidget,
-    type SliderWidget,
-    type SwitchWidget,
-    type Transformer,
-    type WidgetDefinition
+	type Accessor,
+	AccessorMethods,
+	type ConfigDefinition,
+	inputTypes,
+	type InputWidgetDefinition,
+	type ConfigMethod,
+	type NumberWidget,
+	type SliderWidget,
+	type SwitchWidget,
+	type Transformer,
+	type WidgetDefinition,
 } from "./types/config";
-
 
 export class ConfigClass {
 	datapack: Datapack;
@@ -58,10 +57,9 @@ export class ConfigClass {
 				}
 
 				if (type === "switch") {
-					(clone.querySelector(".widget-switch-input") as HTMLInputElement).checked = widget_object.value.default;
-				}
-				
-				else if (type === "slider" || type === "number") {
+					(clone.querySelector(".widget-switch-input") as HTMLInputElement).checked =
+						widget_object.value.default;
+				} else if (type === "slider" || type === "number") {
 					const widgetValue = clone.querySelector(".widget-value-text") as HTMLElement | null;
 
 					if (widget_object.value.default !== undefined) {
@@ -84,18 +82,18 @@ export class ConfigClass {
 					}
 
 					inputElement!.addEventListener("input", updateDisplayedValue);
-				}
-
-				else if (type === "image") {
+				} else if (type === "image") {
 					const imageFile = await zip.file(widget_object.file)?.async("blob");
 
 					if (imageFile) {
-						let img = (clone.querySelector(".widget-image") as HTMLImageElement);
+						let img = clone.querySelector(".widget-image") as HTMLImageElement;
 
 						img.src = URL.createObjectURL(imageFile);
 
-						if (widget_object.width) img.style = `max-width: ${parseImageSize(widget_object.width)};`;
-						else if (widget_object.height) img.style = `max-height: ${parseImageSize(widget_object.height)};`;
+						if (widget_object.width)
+							img.style = `max-width: ${parseImageSize(widget_object.width)};`;
+						else if (widget_object.height)
+							img.style = `max-height: ${parseImageSize(widget_object.height)};`;
 					}
 				}
 
@@ -109,7 +107,7 @@ export class ConfigClass {
 				}
 
 				return clone;
-			})
+			}),
 		);
 
 		// Return array of HTML elements
@@ -121,17 +119,17 @@ export class ConfigClass {
 		const widgets = this.getWidgetList();
 
 		let i = 0;
-		widgets.forEach(widget_object => {
-			if (inputTypes.includes(widget_object.type))  {
-				
+		widgets.forEach((widget_object) => {
+			if (inputTypes.includes(widget_object.type)) {
 				const element_id = "widget-input-" + this.datapack_id.toString() + i.toString();
 				const element_html = document.getElementById(element_id) as HTMLInputElement | null;
 
 				if (element_html != null) {
 					if (widget_object.type !== "switch") {
-						(widget_object as InputWidgetDefinition).inputted_value = parseFloat(element_html.value);
-					}
-					else {
+						(widget_object as InputWidgetDefinition).inputted_value = parseFloat(
+							element_html.value,
+						);
+					} else {
 						(widget_object as SwitchWidget).inputted_value = element_html.checked;
 					}
 				}
@@ -150,9 +148,9 @@ export class ConfigClass {
 
 				let input_value: any = null;
 				let default_value: any = null;
-				let slots: {[key: string]: any} = {};
+				let slots: { [key: string]: any } = {};
 
-				this.getWidgetList().forEach(widget => {
+				this.getWidgetList().forEach((widget) => {
 					if (inputTypes.includes(widget.type) && "inputted_value" in widget) {
 						default_value = (widget as InputWidgetDefinition).value.default;
 
@@ -168,13 +166,11 @@ export class ConfigClass {
 								if (widget.method == method_name) {
 									input_value = val;
 								}
-							}
-							else if ("methods" in widget) {
+							} else if ("methods" in widget) {
 								if (widget.methods?.includes(method_name)) {
 									input_value = val;
 								}
-							}
-							else {
+							} else {
 								input_value = undefined;
 							}
 
@@ -182,9 +178,8 @@ export class ConfigClass {
 							if ("slots" in widget && widget.slots != undefined) {
 								if (typeof widget.slots === "string") {
 									slots[widget.slots] = val;
-								}
-								else {
-									widget.slots.forEach(element => {
+								} else {
+									widget.slots.forEach((element) => {
 										slots[element] = val;
 									});
 								}
@@ -194,20 +189,15 @@ export class ConfigClass {
 				});
 
 				if (input_value === null) {
-					console.log(`[DPConfig] Input value is null, so not applying method ${this.datapack_id}:${method_name}`);
-				}
-				else {
-					applyMethodAsChangeToPack(
-						this.datapack,
-						method,
-						input_value,
-						slots
+					console.log(
+						`[DPConfig] Input value is null, so not applying method ${this.datapack_id}:${method_name}`,
 					);
+				} else {
+					applyMethodAsChangeToPack(this.datapack, method, input_value, slots);
 				}
 			}
 		}
 	}
-
 }
 
 function parseImageSize(dimension: string | number) {
@@ -228,7 +218,7 @@ function getElementSuffix(element: NumberWidget | SliderWidget) {
 function updateDisplayedValue(event: Event) {
 	const target = event.target as HTMLInputElement;
 	const valueElement = target.parentElement?.querySelector(
-		".widget-value-text"
+		".widget-value-text",
 	) as HTMLElement | null;
 
 	let valueToDisplay: string | number = target.valueAsNumber;
@@ -246,14 +236,11 @@ function updateDisplayedValue(event: Event) {
 //////////////////// ACCESSOR LOGIC ////////////////////
 
 function readAccessors(accessor_list: Array<object>): Array<Accessor> {
-	let refined_accessor_list = accessor_list.map(
-		(accessor) => {
-			return asAccessor(accessor);
-		}
-	) as Array<Accessor | null>;
+	let refined_accessor_list = accessor_list.map((accessor) => {
+		return asAccessor(accessor);
+	}) as Array<Accessor | null>;
 
-	refined_accessor_list = refined_accessor_list.filter(
-		(accessor) => accessor != null);
+	refined_accessor_list = refined_accessor_list.filter((accessor) => accessor != null);
 
 	return refined_accessor_list as Array<Accessor>;
 }
@@ -261,8 +248,7 @@ function readAccessors(accessor_list: Array<object>): Array<Accessor> {
 function asAccessor(accessor: object) {
 	if (accessorIsValid(accessor)) {
 		return accessor as Accessor;
-	}
-	else return null;
+	} else return null;
 }
 
 function accessorIsValid(accessor: object) {
@@ -276,21 +262,21 @@ function accessorIsValid(accessor: object) {
 
 ////////// TRANSFORMER LOGIC //////////
 
-function processTransformer(method_input: number | boolean | undefined, slot_values: {[key: string]: any}, transformer: Transformer): DatapackChangeValue {
-
+function processTransformer(
+	method_input: number | boolean | undefined,
+	slot_values: { [key: string]: any },
+	transformer: Transformer,
+): DatapackChangeValue {
 	if (typeof transformer === "number") {
 		return transformer;
-	}
-
-	else if (typeof transformer === "string") {
+	} else if (typeof transformer === "string") {
 		if (transformer.charAt(0) == "$" || transformer == "input") {
 			if (transformer == "$input" || transformer == "$in" || transformer == "input") {
 				if (method_input === undefined) {
 					throw new Error("Trying to access undefined method input?");
 				}
 				return method_input;
-			}
-			else {
+			} else {
 				const variable = transformer.slice(1);
 				if (variable in slot_values) {
 					return slot_values[variable];
@@ -298,41 +284,51 @@ function processTransformer(method_input: number | boolean | undefined, slot_val
 			}
 		}
 		return transformer as string;
-	}
-
-	else if (typeof transformer === "object") {
+	} else if (typeof transformer === "object") {
 		switch (transformer.function) {
 			// Math transformers with two arguments
 			case "add":
-				return (processTransformer(method_input, slot_values, transformer.argument) as number) + (processTransformer(method_input, slot_values, transformer.argument1) as number);
-			
+				return (
+					(processTransformer(method_input, slot_values, transformer.argument) as number) +
+					(processTransformer(method_input, slot_values, transformer.argument1) as number)
+				);
+
 			case "multiply":
-				return (processTransformer(method_input, slot_values, transformer.argument) as number) * (processTransformer(method_input, slot_values, transformer.argument1) as number);
+				return (
+					(processTransformer(method_input, slot_values, transformer.argument) as number) *
+					(processTransformer(method_input, slot_values, transformer.argument1) as number)
+				);
 
 			// Math transformers with a single argument
-			case "int": 
-				return Math.round(processTransformer(method_input, slot_values, transformer.argument) as number);
-				
-			case "square_root": 
-				return Math.sqrt(processTransformer(method_input, slot_values, transformer.argument) as number);
+			case "int":
+				return Math.round(
+					processTransformer(method_input, slot_values, transformer.argument) as number,
+				);
 
-			case "square": 
-				return Math.pow(processTransformer(method_input, slot_values, transformer.argument) as number, 2);
+			case "square_root":
+				return Math.sqrt(
+					processTransformer(method_input, slot_values, transformer.argument) as number,
+				);
+
+			case "square":
+				return Math.pow(
+					processTransformer(method_input, slot_values, transformer.argument) as number,
+					2,
+				);
 
 			// if-else transformer
 			case "if_else":
 				if (transformer.operator == "==") {
-					if (transformer.argument == transformer.argument1) return processTransformer(method_input, slot_values, transformer.true);
+					if (transformer.argument == transformer.argument1)
+						return processTransformer(method_input, slot_values, transformer.true);
 					else return processTransformer(method_input, slot_values, transformer.false);
-				}
-
-				else if (transformer.operator == ">=") {
-					if (transformer.argument >= transformer.argument1) return processTransformer(method_input, slot_values, transformer.true);
+				} else if (transformer.operator == ">=") {
+					if (transformer.argument >= transformer.argument1)
+						return processTransformer(method_input, slot_values, transformer.true);
 					else return processTransformer(method_input, slot_values, transformer.false);
-				}
-
-				else if (transformer.operator == ">") {
-					if (transformer.argument > transformer.argument1) return processTransformer(method_input, slot_values, transformer.true);
+				} else if (transformer.operator == ">") {
+					if (transformer.argument > transformer.argument1)
+						return processTransformer(method_input, slot_values, transformer.true);
 					else return processTransformer(method_input, slot_values, transformer.false);
 				}
 
@@ -341,36 +337,41 @@ function processTransformer(method_input: number | boolean | undefined, slot_val
 			default:
 				throw new Error("Couldn't process unknown transformer");
 		}
-	}
-	else throw new Error("Couldn't process undefined transformer!");
+	} else throw new Error("Couldn't process undefined transformer!");
 }
 
 ////////// METHOD LOGIC //////////
 
-function applyMethodAsChangeToPack(datapack: Datapack, method: ConfigMethod, method_input: any, slots: object) {
-	const method_final_value = processTransformer(
-		method_input,
-		slots,
-		method.value
-	);
-	const accessors = readAccessors(
-		method.accessors
-	);
+function applyMethodAsChangeToPack(
+	datapack: Datapack,
+	method: ConfigMethod,
+	method_input: any,
+	slots: object,
+) {
+	const method_final_value = processTransformer(method_input, slots, method.value);
+	const accessors = readAccessors(method.accessors);
 
-	accessors.forEach(accessor => {
+	accessors.forEach((accessor) => {
 		let final_value = method_final_value;
 		if ("value" in accessor) {
 			final_value = processTransformer(method_input, slots, accessor.value!);
 		}
 		if (typeof accessor.file_path === "string") {
 			DatapackModifierInstance.queueChange(
-				datapack, accessor.file_path, accessor.value_path, final_value, accessor.method as DatapackChangeMethod
+				datapack,
+				accessor.file_path,
+				accessor.value_path,
+				final_value,
+				accessor.method as DatapackChangeMethod,
 			);
-		}
-		else {
-			accessor.file_path.forEach(single_path => {
+		} else {
+			accessor.file_path.forEach((single_path) => {
 				DatapackModifierInstance.queueChange(
-					datapack, single_path, accessor.value_path, final_value, accessor.method as DatapackChangeMethod
+					datapack,
+					single_path,
+					accessor.value_path,
+					final_value,
+					accessor.method as DatapackChangeMethod,
 				);
 			});
 		}

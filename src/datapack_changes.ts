@@ -1,12 +1,12 @@
 import JSZip from "jszip";
-import type {Datapack} from "./datapack";
-import type {ExportSettings} from "./types/settings";
+import type { Datapack } from "./datapack";
+import type { ExportSettings } from "./types/settings";
 import {
-    BooleanMethods,
-    type DatapackChangeMethod,
-    type DatapackChangeValue,
-    NumberMethods,
-    StringMethods
+	BooleanMethods,
+	type DatapackChangeMethod,
+	type DatapackChangeValue,
+	NumberMethods,
+	StringMethods,
 } from "./types/modifications.ts";
 
 interface DatapackChange {
@@ -20,7 +20,7 @@ interface DatapackChange {
 export class DatapackModifier {
 	private static instance: DatapackModifier;
 	private changeQueue: Array<DatapackChange>;
-	private changeCache: {[key: string]: string};
+	private changeCache: { [key: string]: string };
 
 	public static get Instance() {
 		return this.instance || (this.instance = new this());
@@ -40,34 +40,45 @@ export class DatapackModifier {
 	@param value The value must match the method.
 	@param method The method to use when applying the change. Use "set" to overwrite the value.
 	*/
-	public queueChange(datapack: Datapack, file_path: string, value_path: string, value: DatapackChangeValue, method: DatapackChangeMethod) {
+	public queueChange(
+		datapack: Datapack,
+		file_path: string,
+		value_path: string,
+		value: DatapackChangeValue,
+		method: DatapackChangeMethod,
+	) {
 		if (valueMatchesMethod(value, method)) {
 			const change: DatapackChange = {
 				datapack: datapack,
 				file_path: file_path,
 				value_path: value_path,
 				value: value,
-				application_method: method
+				application_method: method,
 			};
 			this.changeQueue.push(change);
-			console.log(`[DatapackModifier] Queued change: \nDatapack: ${change.datapack.id}\nFiles: ${change.file_path}\nValue: ${change.value_path}\nValue: ${change.value}\nMethod: ${change.application_method}`);
-		}
-		else {
-			console.warn(`[DatapackModifier] Datapack change wasn't queued - value ${value} (type <${typeof value}>) doesn't match application method "${method}!"`);
+			console.log(
+				`[DatapackModifier] Queued change: \nDatapack: ${change.datapack.id}\nFiles: ${change.file_path}\nValue: ${change.value_path}\nValue: ${change.value}\nMethod: ${change.application_method}`,
+			);
+		} else {
+			console.warn(
+				`[DatapackModifier] Datapack change wasn't queued - value ${value} (type <${typeof value}>) doesn't match application method "${method}!"`,
+			);
 		}
 	}
 
 	public async applyChanges(datapacks: ReadonlyArray<Datapack>, export_settings: ExportSettings) {
 		console.time("[DatapackModifier] Applied changes to packs");
-		let progress = 0; let progress_max = Object.keys(this.changeQueue).length;
+		let progress = 0;
+		let progress_max = Object.keys(this.changeQueue).length;
 
 		const progressIndicator = document.getElementById("progress-indicator-percentage")!;
 
 		// Apply changes to files
 		for (const change of this.changeQueue) {
-			await this.applyChange(change).then(
-				() => {progress++; progressIndicator.innerText = Math.round(progress / progress_max * 100).toString();}
-			);
+			await this.applyChange(change).then(() => {
+				progress++;
+				progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
+			});
 		}
 
 		// Cache with changes created -> write to zip
@@ -98,16 +109,19 @@ export class DatapackModifier {
 							if (file_name in dpZip.files) {
 								const file_content = await dpZip.files[file_name].async("blob");
 								progress++;
-								progressIndicator.innerText = Math.round(progress / progress_max * 100).toString();
-								packs[pack_id].file(file_name, file_content, {binary: true});
+								progressIndicator.innerText = Math.round(
+									(progress / progress_max) * 100,
+								).toString();
+								packs[pack_id].file(file_name, file_content, { binary: true });
 							}
 						}
 					}
 				}
 
 				// Finally, write changed file:
-				packs[pack_id].file(file_path.split(":")[1], this.changeCache[file_path], {binary: false});
-
+				packs[pack_id].file(file_path.split(":")[1], this.changeCache[file_path], {
+					binary: false,
+				});
 			} else throw new Error("what");
 		}
 
@@ -115,12 +129,15 @@ export class DatapackModifier {
 
 		if (export_settings.combinePacks) {
 			await this.saveFile(packs[Object.keys(packs)[0]], export_settings, "Combined Pack.zip");
-		}
-		else {
+		} else {
 			for (const pack in packs) {
 				if (Object.prototype.hasOwnProperty.call(packs, pack)) {
 					const zip = packs[pack];
-					await this.saveFile(zip, export_settings, datapacks.find((dp) => dp.id === pack)?.file_name!);
+					await this.saveFile(
+						zip,
+						export_settings,
+						datapacks.find((dp) => dp.id === pack)?.file_name!,
+					);
 				}
 			}
 		}
@@ -130,23 +147,27 @@ export class DatapackModifier {
 
 	public async saveFile(zip: JSZip, export_settings: ExportSettings, file_name: string) {
 		console.info(`[DatapackModifier] Saving file... [${zip.name}]`);
-		await zip.generateAsync({
-			type: "blob",
-			compression: export_settings.compressionLevel == 0 ? "STORE" : "DEFLATE",
-			compressionOptions: {
-				level: export_settings.compressionLevel
-			}
-		}).then((content) => {
-			var link = document.createElement("a"), url = URL.createObjectURL(content);
-			link.href = url; link.download = `Modded copy of ${file_name}`;
-			link.hidden = true;
-			document.body.appendChild(link);
-			link.click();
-			setTimeout(function() {
-				document.body.removeChild(link);
-				window.URL.revokeObjectURL(url);  
-			}, 0); 
-		});
+		await zip
+			.generateAsync({
+				type: "blob",
+				compression: export_settings.compressionLevel == 0 ? "STORE" : "DEFLATE",
+				compressionOptions: {
+					level: export_settings.compressionLevel,
+				},
+			})
+			.then((content) => {
+				var link = document.createElement("a"),
+					url = URL.createObjectURL(content);
+				link.href = url;
+				link.download = `Modded copy of ${file_name}`;
+				link.hidden = true;
+				document.body.appendChild(link);
+				link.click();
+				setTimeout(function () {
+					document.body.removeChild(link);
+					window.URL.revokeObjectURL(url);
+				}, 0);
+			});
 	}
 
 	//#region ///// FILE CACHE MANIPULATION /////
@@ -155,15 +176,18 @@ export class DatapackModifier {
 		return `${datapack_id}:${file_path}`;
 	}
 
-	private addToCache(datapack_id: string, file_path: string, file: string, overwrite: boolean = false) {
+	private addToCache(
+		datapack_id: string,
+		file_path: string,
+		file: string,
+		overwrite: boolean = false,
+	) {
 		if (overwrite == true) {
 			this.changeCache[this.cacheKey(datapack_id, file_path)] = file;
-		}
-		else {
+		} else {
 			if (this.isInCache(datapack_id, file_path)) {
 				throw new Error("Trying to overwrite a file in cache without overwrite permission");
-			}
-			else {
+			} else {
 				this.changeCache[this.cacheKey(datapack_id, file_path)] = file;
 			}
 		}
@@ -186,8 +210,8 @@ export class DatapackModifier {
 	private wipeCache() {
 		this.changeCache = {};
 		this.changeQueue = [];
-		console.info("[DatapackModifier] Change cache wiped.")
-		console.info("[DatapackModifier] Change queue wiped.")
+		console.info("[DatapackModifier] Change cache wiped.");
+		console.info("[DatapackModifier] Change queue wiped.");
 	}
 
 	// #endregion
@@ -207,9 +231,7 @@ export class DatapackModifier {
 			const modified_content = JSON.stringify(parsed);
 
 			this.addToCache(change.datapack.id, file_name, modified_content, true);
-		}
-
-		else if (file_name in change.datapack.zip.files) {
+		} else if (file_name in change.datapack.zip.files) {
 			file_content = await change.datapack.zip.files[file_name].async("text");
 
 			let parsed = JSON.parse(file_content);
@@ -219,9 +241,7 @@ export class DatapackModifier {
 			const modified_content = JSON.stringify(parsed);
 
 			this.addToCache(change.datapack.id, file_name, modified_content);
-		}
-
-		else {
+		} else {
 			console.warn(`File "${file_name}" doesn't exist in "${change.datapack.id}"!`);
 		}
 	}
@@ -229,20 +249,13 @@ export class DatapackModifier {
 	private async applyChange(change: DatapackChange) {
 		if (change.file_path.startsWith("./")) {
 			const file_name = change.file_path.slice(2);
-			await this.applyChangeToFile(
-				file_name,
-				change
-			);
-		}
-		else {
+			await this.applyChangeToFile(file_name, change);
+		} else {
 			const files_in_pack: string[] = Object.keys(change.datapack.zip.files);
 
 			for (const file_name of files_in_pack) {
 				if (file_name.endsWith(change.file_path)) {
-					await this.applyChangeToFile(
-						file_name,
-						change
-					);
+					await this.applyChangeToFile(file_name, change);
 				}
 			}
 		}
@@ -252,21 +265,23 @@ export class DatapackModifier {
 
 export const DatapackModifierInstance = DatapackModifier.Instance;
 
-
 function valueMatchesMethod(value: DatapackChangeValue, method: DatapackChangeMethod) {
 	if (typeof value === "string" && !StringMethods.includes(method)) {
 		return false;
-	}
-	else if (typeof value === "number" && !NumberMethods.includes(method)) {
+	} else if (typeof value === "number" && !NumberMethods.includes(method)) {
 		return false;
-	}
-	else if (typeof value === "boolean" && !BooleanMethods.includes(method)) {
+	} else if (typeof value === "boolean" && !BooleanMethods.includes(method)) {
 		return false;
 	}
 	return true;
 }
 
-function applyToValue(json: {[key: string]: any}, value_path: string, value: DatapackChangeValue, method: DatapackChangeMethod) {
+function applyToValue(
+	json: { [key: string]: any },
+	value_path: string,
+	value: DatapackChangeValue,
+	method: DatapackChangeMethod,
+) {
 	const keys = value_path.split("/");
 	const error = new Error(`${value_path} doesn't exist in JSON object!`);
 
@@ -274,16 +289,14 @@ function applyToValue(json: {[key: string]: any}, value_path: string, value: Dat
 		const key = keys[index];
 		if (key in json) {
 			json = json[key];
-		}
-		else {
+		} else {
 			throw error;
 		}
 	}
-	const last_key = keys[keys.length-1];
+	const last_key = keys[keys.length - 1];
 	if (!(last_key in json)) {
 		throw error;
-	}
-	else {
+	} else {
 		const original_value = json[last_key];
 		switch (method) {
 			case "set":
@@ -320,7 +333,7 @@ function applyToValue(json: {[key: string]: any}, value_path: string, value: Dat
 
 			case "pop":
 				let arr = json[last_key] as Array<any>;
-				value = typeof value === "string" ? parseInt(value) : value as number;
+				value = typeof value === "string" ? parseInt(value) : (value as number);
 				arr.splice(value, 1);
 				json[last_key] = arr;
 				break;

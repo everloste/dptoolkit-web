@@ -4,7 +4,7 @@
 		<link rel="stylesheet" href="../styles/main.css" />
 	</head>
 	<body>
-		<dialog open class="accent-color-dialog" style="max-width: 20em; position: relative;">
+		<dialog open class="accent-color-dialog" style="max-width: 20em; position: relative">
 			<h4>Select custom accent colour</h4>
 			<p>
 				<label for="accent-color-input">Hex colour value:</label>
@@ -18,17 +18,14 @@
 					const feedback = document.getElementById("accent-color-input-feedback");
 					if (!inp) {
 						feedback.hidden = true;
-					}
-					else {
+					} else {
 						feedback.hidden = false;
 						if (inp.charAt(0) != "#") {
 							feedback.innerText = "Value isn't a hex code";
-						}
-						else {
+						} else {
 							if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(inp)) {
 								feedback.innerText = "Value is a hex code :)";
-							}
-							else {
+							} else {
 								feedback.innerText = "Invalid hex code";
 							}
 						}

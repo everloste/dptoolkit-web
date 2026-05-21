@@ -6,8 +6,8 @@
 		"preview": "vite preview"
 	},
 	"devDependencies": {
-		"@types/jszip": "^3.4.1",
 		"@types/node": "^24.3.0",
+		"prettier": "^3.8.3",
 		"typescript": "~5.8.3"
 	},
 	"dependencies": {

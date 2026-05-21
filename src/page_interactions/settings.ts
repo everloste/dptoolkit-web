@@ -18,7 +18,7 @@ export function getExportSettings(): ExportSettings {
 		`Getting export settings...
 	Compression level: ${archive_compression_level}
 	Export modified only: ${export_modified_only}
-	Combine: ${combine}`
+	Combine: ${combine}`,
 	);
 
 	return {
