@@ -76,9 +76,23 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 }
 
 async function loadDpConfig(datapackZip: JSZip): Promise<Object> {
-	const dpConfigText = await datapackZip.file("dpconfig.json")?.async("string");
+	let dpConfigText = await datapackZip.file("dpconfig.json")?.async("string");
 	if (dpConfigText) return JSON.parse(dpConfigText);
-	else return {};
+
+	dpConfigText = await datapackZip.file("dpconfig.yml")?.async("string");
+	if (dpConfigText) return loadDpYaml(dpConfigText);
+
+	dpConfigText = await datapackZip.file("dpconfig.yaml")?.async("string");
+	if (dpConfigText) return loadDpYaml(dpConfigText);
+
+	return {};
+}
+
+async function loadDpYaml(yamlText: string) {
+	console.log(yamlText);
+	const yaml = await import("js-yaml");
+
+	return yaml.load(yamlText) as any;
 }
 
 function detectModules(datapackZip: JSZip): Set<Module> {
@@ -88,7 +102,10 @@ function detectModules(datapackZip: JSZip): Set<Module> {
 		"/structure_set/": Modules.STRUCTURE_SET,
 		"/worldgen/biome/": Modules.BIOME,
 		"minecraft/dimension/overworld.json": Modules.OVERWORLD,
+
 		"dpconfig.json": Modules.DPCONFIG,
+		"dpconfig.yml": Modules.DPCONFIG,
+		"dpconfig.yaml": Modules.DPCONFIG,
 	};
 
 	datapackZip.forEach((relativePath, _) => {
