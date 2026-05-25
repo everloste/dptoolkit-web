@@ -47,13 +47,39 @@
 </template>
 
 <template id="structure-widget-template">
-	<h3 class="widget-text">StructureName</h3>
-	<div class="widget number-widget widget-with-input">
-		<label class="widget-text">Spacing:</label>
-		<input type="number" class="widget-input widget-number-input" id="widget-input-x" />
-	</div>
-	<div class="widget number-widget widget-with-input">
-		<label class="widget-text">Separation:</label>
-		<input type="number" class="widget-input widget-number-input" id="widget-input-x" />
+	<div class="structure-widget">
+		<h3 class="widget-text">StructureName</h3>
+		<div class="widget number-widget widget-with-input">
+			<label class="widget-text">Spacing:</label>
+			<input
+				type="number"
+				step="2"
+				min="0"
+				max="4096"
+				class="widget-input widget-number-input"
+				id="structure-widget-spacing-x"
+			/>
+		</div>
+		<div class="widget number-widget widget-with-input">
+			<label class="widget-text">Separation:</label>
+			<input
+				type="number"
+				min="0"
+				max="4096"
+				class="widget-input widget-number-input"
+				id="structure-widget-separation-x"
+			/>
+		</div>
+		<div class="widget number-widget widget-with-input">
+			<label class="widget-text">Frequency:</label>
+			<input
+				type="number"
+				step="0.05"
+				min="0"
+				max="1"
+				class="widget-input widget-number-input"
+				id="structure-widget-frequency-x"
+			/>
+		</div>
 	</div>
 </template>

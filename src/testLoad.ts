@@ -33,14 +33,12 @@ async function main() {
 		return;
 	}
 
-	const datapacks = (await Promise.all(files.map(loadDatapack)))
+	(await Promise.all(files.map(loadDatapack)))
 		.map((datapack) => {
 			if (typeof datapack === "string") console.error(datapack);
 			return datapack;
 		})
 		.filter((datapack) => typeof datapack !== "string");
-
-	// console.log(datapacks);
 }
 
 async function fileFromPath(path: string): Promise<File> {

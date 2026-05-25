@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { ConfigClass } from "./config";
+import { createStructureWidgetsHtml, getStructureSets, StructureSet } from "./structureSet";
 
 export interface Datapack {
 	file_name: string;
@@ -17,6 +18,7 @@ export interface Datapack {
 	rawConfig: undefined | object;
 	instancedConfig: undefined | ConfigClass;
 	modules: Set<Module>;
+	structureSets: ReadonlyArray<StructureSet>;
 }
 
 export const Modules = {
@@ -64,10 +66,12 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 		instancedConfig: undefined,
 		zip: zip,
 		modules: modules,
+		structureSets: await getStructureSets(zip),
 	};
 
 	new_pack.instancedConfig = new ConfigClass(new_pack);
 	await writeConfigWidgetsToPage(new_pack.instancedConfig, zip);
+	await writeStructureWidgetsToPage(new_pack);
 	new_pack.instancedConfig.retrieveValuesFromPage();
 
 	console.info(`Created new datapack with ID: ${pack_id}`);
@@ -89,9 +93,7 @@ async function loadDpConfig(datapackZip: JSZip): Promise<Object> {
 }
 
 async function loadDpYaml(yamlText: string) {
-	console.log(yamlText);
 	const yaml = await import("js-yaml");
-
 	return yaml.load(yamlText) as any;
 }
 
@@ -120,6 +122,15 @@ function detectModules(datapackZip: JSZip): Set<Module> {
 async function writeConfigWidgetsToPage(configObject: ConfigClass, zip: JSZip) {
 	const widgets: Array<DocumentFragment> = await configObject.createWidgetsHtml(zip);
 	const screen = document.getElementById("config-screen")!;
+	widgets.forEach((element) => {
+		screen.appendChild(element);
+	});
+}
+
+async function writeStructureWidgetsToPage(datapack: Datapack) {
+	const widgets: Array<DocumentFragment> = await createStructureWidgetsHtml(datapack.structureSets);
+	console.log(datapack.structureSets);
+	const screen = document.getElementById("structures-screen")!;
 	widgets.forEach((element) => {
 		screen.appendChild(element);
 	});
