@@ -1,10 +1,14 @@
-.config-screen {
+.editor {
 	background-color: var(--background-above);
 	border: var(--border-width) solid var(--background-below);
 	width: 100%;
 	padding: 0em;
 	overflow-y: auto;
 	scrollbar-color: var(--background-above-above) var(--background-below);
+
+	&.hidden {
+		display: none;
+	}
 
 	img {
 		max-width: 100%;
@@ -31,7 +35,8 @@
 	background-color: var(--background-above);
 }
 
-.config-screen > .widget-with-input:nth-of-type(odd) {
+#config-screen > .widget-with-input:nth-of-type(odd),
+.structure-widget > .widget-with-input:nth-of-type(even) {
 	background-color: var(--background);
 }
 

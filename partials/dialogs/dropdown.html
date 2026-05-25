@@ -1,21 +1,19 @@
 <div class="dropdown">
-	<span id="config-screen-select">{{> svg/arrow }} Config</span>
+	<span id="config-screen-select">{{> svg/arrow }} <span id="screen-name">Config</span></span>
 	<div class="dropdown-container">
 		<ul class="dropdown-contents">
 			<li>
-				<a>{{> svg/datapack }} Config</a>
+				<a id="config-link">{{> svg/datapack }} Config</a>
 			</li>
-			<template>
-				<li>
-					<a>{{> svg/structure }} Structure sets</a>
-				</li>
-				<li>
-					<a>{{> svg/biome }} Biome providers</a>
-				</li>
-				<li>
-					<a>{{> svg/loot }} Loot tables</a>
-				</li>
-			</template>
+			<li>
+				<a id="structure-link">{{> svg/structure }} Structure sets</a>
+			</li>
+			<li>
+				<a id="biome-link">{{> svg/biome }} Biome providers</a>
+			</li>
+			<li>
+				<a id="loot-link">{{> svg/loot }} Loot tables</a>
+			</li>
 		</ul>
 	</div>
 </div>

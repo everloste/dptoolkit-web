@@ -2,7 +2,6 @@ import { type Datapack, loadDatapack } from "./datapack";
 import { DatapackModifierInstance } from "./datapack_changes";
 import { type DatapackStoreEvents, datapackStore } from "./datapackStore";
 import { getExportSettings } from "./page_interactions/settings";
-import { getStructureSets } from "./structureSet";
 import { showIntroIfNotShown } from "./page_interactions/introDialog";
 import { suggestAAAColorVariant } from "accessible-colors";
 
@@ -44,7 +43,6 @@ Try contacting their authors to see if they'd like to add Datapack Toolkit suppo
 	}
 
 	// add packs to store and finalise there
-	getStructureSets(validDatapacks);
 	datapackStore.add(validDatapacks);
 }
 
@@ -116,6 +114,32 @@ function sanitizeHtml(unsafe: string): string {
 	div.innerText = unsafe;
 	return div.innerHTML;
 }
+
+////////// NAVIGATION //////////
+
+const screens = {
+	Config: document.getElementById("config-screen")!,
+	"Structure sets": document.getElementById("structures-screen")!,
+	"Biome providers": document.getElementById("biomes-screen")!,
+	"Loot tables": document.getElementById("loot-screen")!,
+};
+
+function navigate(this: HTMLElement, ev: MouseEvent) {
+	console.log(this, ev);
+	const element = this.id.split("-")[0];
+
+	Object.entries(screens).forEach(([screenName, screen]) => {
+		if (screen.id.startsWith(element)) {
+			document.getElementById("screen-name")!.innerText = screenName;
+			screen.classList.remove("hidden");
+		} else screen.classList.add("hidden");
+	});
+}
+
+document.getElementById("config-link")?.addEventListener("mousedown", navigate);
+document.getElementById("structure-link")?.addEventListener("mousedown", navigate);
+document.getElementById("biome-link")?.addEventListener("mousedown", navigate);
+document.getElementById("loot-link")?.addEventListener("mousedown", navigate);
 
 ////////// EXPORT SETTINGS //////////
 const collapsibles = document.getElementsByClassName("collapsible-button");
