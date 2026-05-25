@@ -16,9 +16,27 @@
 }
 
 #structures-screen {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+
 	h3 {
 		padding: 1em;
 		padding-bottom: 0;
+	}
+
+	.structure-widget {
+		width: 100%;
+	}
+
+	hr {
+		width: 1%;
+	}
+
+	button {
+		max-width: 13.5rem;
+		margin-right: 1rem;
+		margin-top: 1rem;
 	}
 }
 
@@ -43,7 +61,7 @@
 }
 
 #config-screen > .widget-with-input:nth-of-type(odd),
-.structure-widget > .widget-with-input:nth-of-type(even) {
+.structure-widget > .widget-with-input:nth-of-type(odd) {
 	background-color: var(--background);
 }
 

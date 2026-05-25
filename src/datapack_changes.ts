@@ -228,7 +228,7 @@ export class DatapackModifier {
 
 			applyToValue(parsed, change.value_path, change.value, change.application_method);
 
-			const modified_content = JSON.stringify(parsed);
+			const modified_content = JSON.stringify(parsed, null, 2);
 
 			this.addToCache(change.datapack.id, file_name, modified_content, true);
 		} else if (file_name in change.datapack.zip.files) {
@@ -238,7 +238,7 @@ export class DatapackModifier {
 
 			applyToValue(parsed, change.value_path, change.value, change.application_method);
 
-			const modified_content = JSON.stringify(parsed);
+			const modified_content = JSON.stringify(parsed, null, 2);
 
 			this.addToCache(change.datapack.id, file_name, modified_content);
 		} else {

@@ -124,8 +124,7 @@ const screens = {
 	"Loot tables": document.getElementById("loot-screen")!,
 };
 
-function navigate(this: HTMLElement, ev: MouseEvent) {
-	console.log(this, ev);
+function navigate(this: HTMLElement, _: MouseEvent) {
 	const element = this.id.split("-")[0];
 
 	Object.entries(screens).forEach(([screenName, screen]) => {
@@ -169,6 +168,34 @@ function exportButtonClicked() {
 
 	datapackStore.getAll().forEach((datapack) => {
 		datapack.instancedConfig?.apply(); // this queues changes
+
+		for (const structure of datapack.structureSets) {
+			if (!structure.modified) continue;
+
+			DatapackModifierInstance.queueChange(
+				datapack,
+				structure.filePath,
+				"placement/separation",
+				structure.placement.separation,
+				"set",
+			);
+
+			DatapackModifierInstance.queueChange(
+				datapack,
+				structure.filePath,
+				"placement/spacing",
+				structure.placement.spacing,
+				"set",
+			);
+
+			DatapackModifierInstance.queueChange(
+				datapack,
+				structure.filePath,
+				"placement/frequency",
+				structure.placement.frequency,
+				"set",
+			);
+		}
 	});
 
 	DatapackModifierInstance.applyChanges(datapackStore.getAll(), export_settings).then(() => {

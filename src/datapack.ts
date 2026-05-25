@@ -18,7 +18,7 @@ export interface Datapack {
 	rawConfig: undefined | object;
 	instancedConfig: undefined | ConfigClass;
 	modules: Set<Module>;
-	structureSets: ReadonlyArray<StructureSet>;
+	structureSets: Array<StructureSet>;
 }
 
 export const Modules = {
@@ -128,8 +128,10 @@ async function writeConfigWidgetsToPage(configObject: ConfigClass, zip: JSZip) {
 }
 
 async function writeStructureWidgetsToPage(datapack: Datapack) {
-	const widgets: Array<DocumentFragment> = await createStructureWidgetsHtml(datapack.structureSets);
-	console.log(datapack.structureSets);
+	const widgets: Array<DocumentFragment> = await createStructureWidgetsHtml(
+		datapack.structureSets,
+		datapack.id,
+	);
 	const screen = document.getElementById("structures-screen")!;
 	widgets.forEach((element) => {
 		screen.appendChild(element);

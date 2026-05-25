@@ -1,5 +1,4 @@
 import type JSZip from "jszip";
-// import { Modules, type Datapack } from "./datapack";
 
 type Placement = {
 	type?: string;
@@ -20,9 +19,11 @@ export class StructureSet {
 	type: string;
 	placement: Placement;
 	originalPlacement: Readonly<Placement>;
+	filePath: string;
 
-	constructor(id: string, originalPlacement: Readonly<Placement>) {
+	constructor(id: string, filePath: string, originalPlacement: Readonly<Placement>) {
 		this.id = id;
+		this.filePath = filePath;
 		const placement = { ...originalPlacement };
 
 		delete placement.type;
@@ -81,7 +82,7 @@ export async function getStructureSets(zip: JSZip) {
 	return Promise.all(
 		filtered.map(async ([filePath, file]) => {
 			const setName = filePathToSetName(filePath, divider);
-			return new StructureSet(setName, JSON.parse(await file.async("string")).placement);
+			return new StructureSet(setName, filePath, JSON.parse(await file.async("string")).placement);
 		}),
 	);
 }
@@ -94,29 +95,48 @@ function filePathToSetName(filePath: string, div: string) {
 	return `${prefix}:${fileName}`;
 }
 
-export async function createStructureWidgetsHtml(structures: readonly StructureSet[]) {
+export async function createStructureWidgetsHtml(structures: StructureSet[], datapackId: string) {
 	const template = document.getElementById("structure-widget-template") as HTMLTemplateElement;
 
-	const widgets = structures.map((structure, index) => {
+	const widgets = structures.map((structure) => {
 		let clone = template.content.cloneNode(true) as DocumentFragment;
 
 		const widgetText = clone.querySelector(".widget-text") as HTMLElement;
 		widgetText.innerText = structure.id;
 
-		const spacingElement = clone.getElementById("structure-widget-spacing-x") as HTMLInputElement;
+		const container = clone.querySelector(".structure-widget")!;
+		container.id = `structure-${datapackId}-${structure.id}`;
+
+		const spacingElement = clone.querySelector(".structure-spacing") as HTMLInputElement;
+		const separationElement = clone.querySelector(".structure-separation") as HTMLInputElement;
+		const frequencyElement = clone.querySelector(".structure-frequency") as HTMLInputElement;
+
 		spacingElement.value = String(structure.placement.spacing);
-
-		const separationElement = clone.getElementById(
-			"structure-widget-separation-x",
-		) as HTMLInputElement;
 		separationElement.value = String(structure.placement.separation);
-
-		const frequencyElement = clone.getElementById(
-			"structure-widget-frequency-x",
-		) as HTMLInputElement;
 		frequencyElement.value = String(structure.placement.frequency);
 
-		if (index !== structures.length - 1) clone.append(document.createElement("hr"));
+		const resetButton = clone.getElementById("stucture-reset-x") as HTMLButtonElement;
+		resetButton.id = `structure-reset-${datapackId}-${structure.id}`;
+		resetButton.addEventListener("click", () => {
+			spacingElement.value = String(structure.originalPlacement.spacing);
+			separationElement.value = String(structure.originalPlacement.separation);
+			frequencyElement.value = String(structure.originalPlacement.frequency);
+			structure.modified = false;
+		});
+
+		function updatePlacement<K extends keyof Placement>(param: K) {
+			return (ev: Event) => {
+				structure.modified = true;
+				const value = Number((ev.target as HTMLInputElement).value);
+				structure.placement[param] = value as Placement[K];
+			};
+		}
+
+		spacingElement.addEventListener("change", updatePlacement("spacing"));
+		separationElement.addEventListener("change", updatePlacement("separation"));
+		frequencyElement.addEventListener("change", updatePlacement("frequency"));
+
+		// if (index !== structures.length - 1) clone.append(document.createElement("hr"));
 
 		return clone;
 	});
