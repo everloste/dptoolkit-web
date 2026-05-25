@@ -1,8 +1,8 @@
-import JSZip from "jszip";
 import DOMPurify from "dompurify";
+import JSZip from "jszip";
+
 import type { Datapack } from "./datapack";
 import { DatapackModifierInstance } from "./datapack_changes";
-import type { DatapackChangeMethod, DatapackChangeValue } from "./types/modifications.ts";
 import {
 	type Accessor,
 	AccessorMethods,
@@ -16,6 +16,7 @@ import {
 	type Transformer,
 	type WidgetDefinition,
 } from "./types/config";
+import type { DatapackChangeMethod, DatapackChangeValue } from "./types/modifications.ts";
 
 export class ConfigClass {
 	datapack: Datapack;

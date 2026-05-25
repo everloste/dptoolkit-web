@@ -1,6 +1,6 @@
 import JSZip from "jszip";
+
 import type { Datapack } from "./datapack";
-import type { ExportSettings } from "./types/settings";
 import {
 	BooleanMethods,
 	type DatapackChangeMethod,
@@ -8,6 +8,7 @@ import {
 	NumberMethods,
 	StringMethods,
 } from "./types/modifications.ts";
+import type { ExportSettings } from "./types/settings";
 
 interface DatapackChange {
 	datapack: Datapack;

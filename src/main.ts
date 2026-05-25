@@ -1,9 +1,10 @@
+import { suggestAAAColorVariant } from "accessible-colors";
+
 import { type Datapack, loadDatapack } from "./datapack";
 import { DatapackModifierInstance } from "./datapack_changes";
 import { type DatapackStoreEvents, datapackStore } from "./datapackStore";
-import { getExportSettings } from "./page_interactions/settings";
 import { showIntroIfNotShown } from "./page_interactions/introDialog";
-import { suggestAAAColorVariant } from "accessible-colors";
+import { getExportSettings } from "./page_interactions/settings";
 
 const fileUploadElement = document.getElementById("input")!;
 fileUploadElement.addEventListener("change", onFileUploaded, { passive: true });

@@ -1,0 +1,9 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"ignorePatterns": ["dist"],
+
+	"useTabs": true,
+	"sortImports": {
+		"newlinesBetween": true
+	}
+}

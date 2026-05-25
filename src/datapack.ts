@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+
 import { ConfigClass } from "./config";
 import { createStructureWidgetsHtml, getStructureSets, StructureSet } from "./structureSet";
 

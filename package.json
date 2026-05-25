@@ -3,13 +3,9 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"preview": "vite preview"
-	},
-	"devDependencies": {
-		"@types/js-yaml": "^4.0.9",
-		"@types/node": "^25.9.1",
-		"prettier": "^3.8.3",
-		"typescript": "~6.0.3"
+		"preview": "vite preview",
+		"fmt": "oxfmt",
+		"fmt:check": "oxfmt --check"
 	},
 	"dependencies": {
 		"accessible-colors": "^1.0.8",
@@ -19,5 +15,11 @@
 		"typescript-event-target": "^1.1.1",
 		"vite": "^8.0.14",
 		"vite-plugin-handlebars": "^2.0.0"
+	},
+	"devDependencies": {
+		"@types/js-yaml": "^4.0.9",
+		"@types/node": "^25.9.1",
+		"oxfmt": "^0.51.0",
+		"typescript": "~6.0.3"
 	}
 }

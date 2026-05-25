@@ -1,4 +1,5 @@
 import { TypedEventTarget } from "typescript-event-target";
+
 import { type Datapack } from "./datapack";
 
 class DatapacksChangedEvent extends CustomEvent<ReadonlyArray<Datapack>> {
