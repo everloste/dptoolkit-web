@@ -35,7 +35,7 @@ jobs:
         with:
           version: 10
       - name: Install dependencies
-        run: pnpm install --production --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm run build
       - name: Setup Pages
