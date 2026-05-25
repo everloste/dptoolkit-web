@@ -103,7 +103,7 @@ export class DatapackModifier {
 
 					// And if we ought to include unmodified files as well, we have to copy them over:
 					if (export_settings.modifiedOnly == false) {
-						const dpZip = datapacks.find((dp) => dp.id === pack_id)?.zip!;
+						const dpZip = datapacks.find((dp) => dp.id === pack_id)!.zip;
 						progress_max += Object.keys(dpZip.files).length;
 
 						for (const file_name in dpZip.files) {
@@ -137,7 +137,7 @@ export class DatapackModifier {
 					await this.saveFile(
 						zip,
 						export_settings,
-						datapacks.find((dp) => dp.id === pack)?.file_name!,
+						datapacks.find((dp) => dp.id === pack)!.file_name,
 					);
 				}
 			}

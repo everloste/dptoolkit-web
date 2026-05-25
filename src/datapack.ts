@@ -42,7 +42,7 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 	let mcmeta;
 	try {
 		mcmeta = JSON.parse(mcmetaText);
-	} catch (error) {
+	} catch {
 		return "Failed to parse pack.mcmeta";
 	}
 
@@ -80,7 +80,7 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 	return new_pack;
 }
 
-async function loadDpConfig(datapackZip: JSZip): Promise<Object> {
+async function loadDpConfig(datapackZip: JSZip): Promise<object> {
 	let dpConfigText = await datapackZip.file("dpconfig.json")?.async("string");
 	if (dpConfigText) return JSON.parse(dpConfigText);
 

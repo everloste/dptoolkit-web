@@ -6,7 +6,7 @@ registerHooks({
 	resolve(specifier, context, nextResolve) {
 		try {
 			return nextResolve(specifier, context);
-		} catch (error) {
+		} catch {
 			return nextResolve(`${specifier}.ts`, context);
 		}
 	},
