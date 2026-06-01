@@ -15,6 +15,15 @@
 	}
 }
 
+#biomes-screen,
+#loot-screen {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: x-large;
+	font-weight: bold;
+}
+
 #structures-screen {
 	display: flex;
 	flex-direction: column;
