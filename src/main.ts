@@ -1,6 +1,6 @@
 import { suggestAAAColorVariant } from "accessible-colors";
 
-import { type Datapack, loadDatapack } from "./datapack";
+import { type Datapack, loadDatapack, Modules } from "./datapack";
 import { DatapackModifierInstance } from "./datapack_changes";
 import { type DatapackStoreEvents, datapackStore } from "./datapackStore";
 import { showIntroIfNotShown } from "./page_interactions/introDialog";
@@ -34,9 +34,14 @@ async function onFileUploaded(e: Event) {
 			datapacksWithoutConfig.push(element.file_name);
 		}
 	});
-	if (datapacksWithoutConfig.length !== 0) {
+
+	if (
+		!validDatapacks.every(
+			(dp) => dp.modules.has(Modules.STRUCTURE_SET) || dp.modules.has(Modules.DPCONFIG),
+		)
+	) {
 		window.alert(
-			`The following packs do not contain a config file:
+			`The following packs do not contain a config file or do not yet have a supportable configuration:
 ${datapacksWithoutConfig.join("\n")}
 
 Try contacting their authors to see if they'd like to add Datapack Toolkit support.`,
