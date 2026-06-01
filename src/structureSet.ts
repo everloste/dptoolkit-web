@@ -10,7 +10,7 @@ type Placement = {
 	locate_offset?: unknown;
 	spacing: number;
 	separation: number;
-	frequency: number;
+	frequency?: number;
 };
 
 export class StructureSet {
@@ -113,14 +113,14 @@ export async function createStructureWidgetsHtml(structures: StructureSet[], dat
 
 		spacingElement.value = String(structure.placement.spacing);
 		separationElement.value = String(structure.placement.separation);
-		frequencyElement.value = String(structure.placement.frequency);
+		frequencyElement.value = String(structure.placement.frequency ?? 1);
 
 		const resetButton = clone.getElementById("stucture-reset-x") as HTMLButtonElement;
 		resetButton.id = `structure-reset-${datapackId}-${structure.id}`;
 		resetButton.addEventListener("click", () => {
 			spacingElement.value = String(structure.originalPlacement.spacing);
 			separationElement.value = String(structure.originalPlacement.separation);
-			frequencyElement.value = String(structure.originalPlacement.frequency);
+			frequencyElement.value = String(structure.originalPlacement.frequency ?? 1);
 			structure.modified = false;
 		});
 

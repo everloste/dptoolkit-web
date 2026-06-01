@@ -207,7 +207,7 @@ function exportButtonClicked() {
 				datapack,
 				structure.filePath,
 				"placement/frequency",
-				structure.placement.frequency,
+				structure.placement.frequency ?? 1,
 				"set",
 			);
 		}
