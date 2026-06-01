@@ -50,6 +50,15 @@ Try contacting their authors to see if they'd like to add Datapack Toolkit suppo
 
 	// add packs to store and finalise there
 	datapackStore.add(validDatapacks);
+
+	const anyHasDpConfig = validDatapacks.some((dp) => dp.modules.has(Modules.DPCONFIG));
+	const anyHasStructure = validDatapacks.some((dp) => dp.modules.has(Modules.STRUCTURE_SET));
+
+	if (anyHasDpConfig) {
+		navigate.call(document.getElementById("config-link")!);
+	} else if (anyHasStructure) {
+		navigate.call(document.getElementById("structure-link")!);
+	}
 }
 
 function updateDatapackDisplay(event: DatapackStoreEvents["datapacksChanged"]) {
@@ -130,7 +139,7 @@ const screens = {
 	"Loot tables": document.getElementById("loot-screen")!,
 };
 
-function navigate(this: HTMLElement, _: MouseEvent) {
+function navigate(this: HTMLElement, _?: MouseEvent) {
 	const element = this.id.split("-")[0];
 
 	Object.entries(screens).forEach(([screenName, screen]) => {
