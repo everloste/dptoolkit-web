@@ -111,6 +111,10 @@ export async function createStructureWidgetsHtml(structures: StructureSet[], dat
 		const separationElement = clone.querySelector(".structure-separation") as HTMLInputElement;
 		const frequencyElement = clone.querySelector(".structure-frequency") as HTMLInputElement;
 
+		dispatchChangeOnStep(spacingElement);
+		dispatchChangeOnStep(separationElement);
+		dispatchChangeOnStep(frequencyElement);
+
 		spacingElement.value = String(structure.placement.spacing);
 		separationElement.value = String(structure.placement.separation);
 		frequencyElement.value = String(structure.placement.frequency ?? 1);
@@ -142,4 +146,14 @@ export async function createStructureWidgetsHtml(structures: StructureSet[], dat
 	});
 
 	return widgets;
+}
+
+function dispatchChangeOnStep(input: HTMLInputElement) {
+	const buttons = input.closest(".number-input")?.querySelectorAll("button");
+
+	buttons?.forEach((button) => {
+		button.addEventListener("click", () => {
+			input.dispatchEvent(new Event("change", { bubbles: true }));
+		});
+	});
 }
