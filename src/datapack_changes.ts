@@ -57,7 +57,7 @@ export class DatapackModifier {
 				application_method: method,
 			};
 			this.changeQueue.push(change);
-			console.log(
+			console.debug(
 				`[DatapackModifier] Queued change: \nDatapack: ${change.datapack.id}\nFiles: ${change.file_path}\nValue: ${change.value_path}\nValue: ${change.value}\nMethod: ${change.application_method}`,
 			);
 		} else {
@@ -212,7 +212,6 @@ export class DatapackModifier {
 		this.changeCache = {};
 		this.changeQueue = [];
 		console.info("[DatapackModifier] Change cache wiped.");
-		console.info("[DatapackModifier] Change queue wiped.");
 	}
 
 	// #endregion
@@ -243,7 +242,7 @@ export class DatapackModifier {
 
 			this.addToCache(change.datapack.id, file_name, modified_content);
 		} else {
-			console.warn(`File "${file_name}" doesn't exist in "${change.datapack.id}"!`);
+			console.error(`File "${file_name}" doesn't exist in "${change.datapack.id}"!`);
 		}
 	}
 

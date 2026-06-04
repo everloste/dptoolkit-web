@@ -7,7 +7,7 @@ export function showIntroIfNotShown() {
 	const lastShownVersion = Number.parseInt(localStorage.getItem("dialogVersion") || "-1");
 
 	if (lastShownVersion >= currentIntroVersion) {
-		console.info(`Intro dialog already shown (version ${lastShownVersion}), skipping.`);
+		console.debug(`Intro dialog already shown (version ${lastShownVersion}), skipping.`);
 		return;
 	}
 

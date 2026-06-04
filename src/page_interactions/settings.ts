@@ -14,7 +14,7 @@ export function getExportSettings(): ExportSettings {
 	element = document.getElementById("setting-combine-packs") as HTMLInputElement;
 	const combine = element.checked;
 
-	console.info(
+	console.debug(
 		`Getting export settings...
 	Compression level: ${archive_compression_level}
 	Export modified only: ${export_modified_only}

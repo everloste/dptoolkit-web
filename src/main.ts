@@ -176,7 +176,7 @@ const exportButtonElement = document.getElementById("export-button")!;
 exportButtonElement.addEventListener("click", exportButtonClicked, { passive: true });
 
 function exportButtonClicked() {
-	console.info("Datapack export beginning...");
+	console.debug("Datapack export beginning...");
 	document.getElementById("progress-indicator")!.hidden = false;
 
 	const export_settings = getExportSettings();
