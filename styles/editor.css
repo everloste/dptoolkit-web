@@ -43,10 +43,14 @@
 		width: 1%;
 	}
 
-	button {
+	.reset-btn {
 		max-width: 13.5rem;
 		margin-right: 1rem;
 		margin-top: 1rem;
+	}
+
+	.number-input {
+		width: 15vw;
 	}
 }
 
