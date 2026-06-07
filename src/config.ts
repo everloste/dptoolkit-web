@@ -16,7 +16,7 @@ import {
 	type Transformer,
 	type WidgetDefinition,
 } from "./types/config";
-import type { DatapackChangeMethod, DatapackChangeValue } from "./types/modifications.ts";
+import type { DatapackChangeValue } from "./types/modifications.ts";
 
 export class ConfigClass {
 	datapack: Datapack;
@@ -358,22 +358,22 @@ function applyMethodAsChangeToPack(
 			final_value = processTransformer(method_input, slots, accessor.value!);
 		}
 		if (typeof accessor.file_path === "string") {
-			DatapackModifierInstance.queueChange(
+			DatapackModifierInstance.queueChange({
 				datapack,
-				accessor.file_path,
-				accessor.value_path,
-				final_value,
-				accessor.method as DatapackChangeMethod,
-			);
+				file_path: accessor.file_path,
+				value_path: accessor.value_path,
+				value: final_value,
+				application_method: accessor.method,
+			});
 		} else {
 			accessor.file_path.forEach((single_path) => {
-				DatapackModifierInstance.queueChange(
+				DatapackModifierInstance.queueChange({
 					datapack,
-					single_path,
-					accessor.value_path,
-					final_value,
-					accessor.method as DatapackChangeMethod,
-				);
+					file_path: single_path,
+					value_path: accessor.value_path,
+					value: final_value,
+					application_method: accessor.method,
+				});
 			});
 		}
 	});

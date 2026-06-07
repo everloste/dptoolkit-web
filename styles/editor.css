@@ -15,7 +15,6 @@
 	}
 }
 
-#biomes-screen,
 #loot-screen {
 	display: flex;
 	justify-content: center;
@@ -75,8 +74,36 @@
 }
 
 #config-screen > .widget-with-input:nth-of-type(odd),
+#biomes-screen > .widget-with-input:nth-of-type(odd),
 .structure-widget > .widget-with-input:nth-of-type(odd) {
 	background-color: var(--background);
+}
+
+#biomes-screen {
+	.biome-labels {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.widget {
+		padding-top: 1em;
+		padding-bottom: 1em;
+	}
+
+	select {
+		max-width: 25ch;
+	}
+
+	h3 {
+		text-transform: capitalize;
+		margin: 0;
+	}
+
+	p {
+		margin: 0;
+		color: #8087a2;
+		font-family: monospace;
+	}
 }
 
 .widget-input:not([type="checkbox"]) {

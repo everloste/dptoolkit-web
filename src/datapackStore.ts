@@ -1,5 +1,6 @@
 import { TypedEventTarget } from "typescript-event-target";
 
+import type { Biome } from "./biomes";
 import { type Datapack } from "./datapack";
 
 class DatapacksChangedEvent extends CustomEvent<ReadonlyArray<Datapack>> {
@@ -14,6 +15,11 @@ export interface DatapackStoreEvents {
 
 class DatapackStore extends TypedEventTarget<DatapackStoreEvents> {
 	private datapacks = new Map<string, Datapack>();
+	private biomes: Record<string, Biome> = {};
+
+	getBiomes() {
+		return this.biomes;
+	}
 
 	getAll(): ReadonlyArray<Datapack> {
 		return Array.from(this.datapacks.values());

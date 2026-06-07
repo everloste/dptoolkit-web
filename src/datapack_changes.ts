@@ -18,10 +18,16 @@ interface DatapackChange {
 	application_method: DatapackChangeMethod;
 }
 
+interface FileChange {
+	datapack: Datapack;
+	file_path: string;
+}
+
 export class DatapackModifier {
 	private static instance: DatapackModifier;
 	private changeQueue: Array<DatapackChange>;
-	private changeCache: { [key: string]: string };
+	private disableQueue: Array<FileChange>;
+	private changeCache: { [key: string]: string | null };
 
 	public static get Instance() {
 		return this.instance || (this.instance = new this());
@@ -29,7 +35,12 @@ export class DatapackModifier {
 
 	constructor() {
 		this.changeQueue = [];
+		this.disableQueue = [];
 		this.changeCache = {};
+	}
+
+	public queueDisable(change: FileChange) {
+		this.disableQueue.push(change);
 	}
 
 	/**
@@ -41,36 +52,24 @@ export class DatapackModifier {
 	@param value The value must match the method.
 	@param method The method to use when applying the change. Use "set" to overwrite the value.
 	*/
-	public queueChange(
-		datapack: Datapack,
-		file_path: string,
-		value_path: string,
-		value: DatapackChangeValue,
-		method: DatapackChangeMethod,
-	) {
-		if (valueMatchesMethod(value, method)) {
-			const change: DatapackChange = {
-				datapack: datapack,
-				file_path: file_path,
-				value_path: value_path,
-				value: value,
-				application_method: method,
-			};
-			this.changeQueue.push(change);
-			console.debug(
-				`[DatapackModifier] Queued change: \nDatapack: ${change.datapack.id}\nFiles: ${change.file_path}\nValue: ${change.value_path}\nValue: ${change.value}\nMethod: ${change.application_method}`,
-			);
-		} else {
+	public queueChange(change: DatapackChange) {
+		if (!valueMatchesMethod(change.value, change.application_method)) {
 			console.warn(
-				`[DatapackModifier] Datapack change wasn't queued - value ${value} (type <${typeof value}>) doesn't match application method "${method}!"`,
+				`[DatapackModifier] Change not queued - value ${change.value} (type <${typeof change.value}>) doesn't match application method "${change.application_method}!"`,
 			);
+			return;
 		}
+
+		this.changeQueue.push(change);
+		console.debug(
+			`[DatapackModifier] Queued change: \nDatapack: ${change.datapack.id}\nFiles: ${change.file_path}\nValue: ${change.value_path}\nValue: ${change.value}\nMethod: ${change.application_method}`,
+		);
 	}
 
 	public async applyChanges(datapacks: ReadonlyArray<Datapack>, export_settings: ExportSettings) {
 		console.time("[DatapackModifier] Applied changes to packs");
 		let progress = 0;
-		let progress_max = Object.keys(this.changeQueue).length;
+		let progress_max = this.changeQueue.length + this.disableQueue.length;
 
 		const progressIndicator = document.getElementById("progress-indicator-percentage")!;
 
@@ -80,6 +79,13 @@ export class DatapackModifier {
 				progress++;
 				progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
 			});
+		}
+
+		for (const disable of this.disableQueue) {
+			await this.applyDisable(disable);
+
+			progress++;
+			progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
 		}
 
 		// Cache with changes created -> write to zip
@@ -119,6 +125,7 @@ export class DatapackModifier {
 					}
 				}
 
+				if (this.changeCache[file_path] === null) continue;
 				// Finally, write changed file:
 				packs[pack_id].file(file_path.split(":")[1], this.changeCache[file_path], {
 					binary: false,
@@ -180,7 +187,7 @@ export class DatapackModifier {
 	private addToCache(
 		datapack_id: string,
 		file_path: string,
-		file: string,
+		file: string | null,
 		overwrite: boolean = false,
 	) {
 		if (overwrite == true) {
@@ -211,6 +218,7 @@ export class DatapackModifier {
 	private wipeCache() {
 		this.changeCache = {};
 		this.changeQueue = [];
+		this.disableQueue = [];
 		console.info("[DatapackModifier] Change cache wiped.");
 	}
 
@@ -219,10 +227,11 @@ export class DatapackModifier {
 	//#region ///// FILE MODIFICATIONS /////
 
 	private async applyChangeToFile(file_name: string, change: DatapackChange) {
-		let file_content: string;
+		let file_content: string | null;
 
 		if (this.isInCache(change.datapack.id, file_name)) {
 			file_content = this.retrieveFromCache(change.datapack.id, file_name);
+			if (file_content === null) return;
 
 			let parsed = JSON.parse(file_content);
 
@@ -259,6 +268,24 @@ export class DatapackModifier {
 				}
 			}
 		}
+	}
+
+	private async applyDisable(change: FileChange) {
+		const filesInPack: string[] = Object.keys(change.datapack.zip.files);
+		for (const fileName of filesInPack) {
+			if (fileName.endsWith(change.file_path)) {
+				await this.rename(change.datapack.zip, fileName, `${fileName}.disabled`);
+				this.addToCache(change.datapack.id, fileName, null);
+			}
+		}
+	}
+
+	private async rename(zip: JSZip, from: string, to: string) {
+		const old = zip.file(from)!;
+
+		const content = await old.async("uint8array");
+		zip.remove(old.name);
+		zip.file(to, content);
 	}
 	// #endregion
 }

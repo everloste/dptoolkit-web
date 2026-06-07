@@ -1,5 +1,7 @@
 import type JSZip from "jszip";
 
+import { filePathToId, getFiles } from "./common";
+
 type Placement = {
 	type?: string;
 	spread_type?: string;
@@ -61,13 +63,8 @@ export class StructureSet {
 
 export async function getStructureSets(zip: JSZip) {
 	const divider = "/worldgen/structure_set/";
-	const files = Object.entries(zip.files).filter(
-		([filePath, _]) => filePath.includes(divider) && filePath.endsWith(".json"),
-	);
-
-	const structureNames = new Set(
-		files.map(([filePath, _]) => filePathToSetName(filePath, divider)),
-	);
+	const files = getFiles({ zip, contains: divider });
+	const structureNames = new Set(files.map(([filePath, _]) => filePathToId(filePath, divider)));
 
 	let filtered: [string, JSZip.JSZipObject][] = [];
 	structureNames.forEach((set) => {
@@ -81,18 +78,10 @@ export async function getStructureSets(zip: JSZip) {
 
 	return Promise.all(
 		filtered.map(async ([filePath, file]) => {
-			const setName = filePathToSetName(filePath, divider);
+			const setName = filePathToId(filePath, divider);
 			return new StructureSet(setName, filePath, JSON.parse(await file.async("string")).placement);
 		}),
 	);
-}
-
-function filePathToSetName(filePath: string, div: string) {
-	let [prefix, fileName] = filePath.split(div);
-	prefix = prefix.split("/").at(-1) ?? "unknown";
-	fileName = fileName.replace(".json", "");
-
-	return `${prefix}:${fileName}`;
 }
 
 export async function createStructureWidgetsHtml(structures: StructureSet[], datapackId: string) {

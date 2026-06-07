@@ -24,7 +24,9 @@ async function onFileUploaded(e: Event) {
 	}
 
 	// load datapacks as objects
-	const datapacks = await Promise.all(zipFiles.map(loadDatapack));
+	const datapacks = await Promise.all(
+		zipFiles.map((file) => loadDatapack(file, datapackStore.getBiomes())),
+	);
 	const validDatapacks = datapacks.filter((dp) => dp instanceof Object);
 
 	// detect loaded packs that do not have a config file
@@ -53,11 +55,14 @@ Try contacting their authors to see if they'd like to add Datapack Toolkit suppo
 
 	const anyHasDpConfig = validDatapacks.some((dp) => dp.modules.has(Modules.DPCONFIG));
 	const anyHasStructure = validDatapacks.some((dp) => dp.modules.has(Modules.STRUCTURE_SET));
+	const anyHasBiome = validDatapacks.some((dp) => dp.modules.has(Modules.BIOME));
 
 	if (anyHasDpConfig) {
 		navigate.call(document.getElementById("config-link")!);
 	} else if (anyHasStructure) {
 		navigate.call(document.getElementById("structure-link")!);
+	} else if (anyHasBiome) {
+		navigate.call(document.getElementById("biome-link")!);
 	}
 }
 
@@ -104,7 +109,7 @@ function getNameAndDescription(mcmeta: any): {
 	}
 
 	// strip colour codes from the name, both easier and more readable
-	name = name.replace(/§./g, "");
+	name = name.replace(/§./g, ""); // TODO does this do anything?
 
 	if (!description) description = "";
 
@@ -121,7 +126,7 @@ function descriptionToDisplayable(description: Datapack["description"]): string 
 			}))
 			.map((desc) => `<span style="color: ${desc.color}">${desc.text}</span>`)
 			.join("");
-	} else return description.replace("\n", "<br>");
+	} else return description.replaceAll("\n", "<br>");
 }
 
 function sanitizeHtml(unsafe: string): string {
@@ -181,35 +186,53 @@ function exportButtonClicked() {
 
 	const export_settings = getExportSettings();
 
+	const biomes = datapackStore.getBiomes();
+
 	datapackStore.getAll().forEach((datapack) => {
 		datapack.instancedConfig?.apply(); // this queues changes
+
+		const packBiomeName = (datapack.mcmeta as any)?.pack?.name || datapack.id;
+
+		Object.entries(biomes).forEach(([biomeId, biome]) => {
+			if (!biome.changed || !biome.preference || biome.preference === "Load order") return;
+			if (!biome.packs.includes(packBiomeName)) return;
+			if (biome.preference === packBiomeName) return;
+
+			const biomeSplit = biomeId.split(":");
+			const biomePath = `/${biomeSplit[0]}/worldgen/biome/${biomeSplit[1]}.json`;
+
+			DatapackModifierInstance.queueDisable({
+				datapack,
+				file_path: biomePath,
+			});
+		});
 
 		for (const structure of datapack.structureSets) {
 			if (!structure.modified) continue;
 
-			DatapackModifierInstance.queueChange(
+			DatapackModifierInstance.queueChange({
 				datapack,
-				structure.filePath,
-				"placement/separation",
-				structure.placement.separation,
-				"set",
-			);
+				file_path: structure.filePath,
+				value_path: "placement/separation",
+				value: structure.placement.separation,
+				application_method: "set",
+			});
 
-			DatapackModifierInstance.queueChange(
+			DatapackModifierInstance.queueChange({
 				datapack,
-				structure.filePath,
-				"placement/spacing",
-				structure.placement.spacing,
-				"set",
-			);
+				file_path: structure.filePath,
+				value_path: "placement/spacing",
+				value: structure.placement.spacing,
+				application_method: "set",
+			});
 
-			DatapackModifierInstance.queueChange(
+			DatapackModifierInstance.queueChange({
 				datapack,
-				structure.filePath,
-				"placement/frequency",
-				structure.placement.frequency ?? 1,
-				"set",
-			);
+				file_path: structure.filePath,
+				value_path: "placement/frequency",
+				value: structure.placement.frequency ?? 1,
+				application_method: "set",
+			});
 		}
 	});
 

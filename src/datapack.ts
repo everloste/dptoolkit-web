@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 
+import { createBiomeWidgetsHtml, getBiomes, type Biome } from "./biomes";
 import { ConfigClass } from "./config";
 import { createStructureWidgetsHtml, getStructureSets, StructureSet } from "./structureSet";
 
@@ -30,7 +31,10 @@ export const Modules = {
 } as const;
 type Module = (typeof Modules)[keyof typeof Modules];
 
-export async function loadDatapack(file: File): Promise<Datapack | string> {
+export async function loadDatapack(
+	file: File,
+	biomesOut: Record<string, Biome>,
+): Promise<Datapack | string> {
 	const jsZip = new JSZip();
 	const zip = await jsZip.loadAsync(file);
 
@@ -54,7 +58,7 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 	if (modules.has(Modules.DPCONFIG)) config = await loadDpConfig(zip);
 
 	let pack_id = mcmeta.pack.id || file.name;
-	pack_id = pack_id + Math.round(Math.random() * 100);
+	// pack_id = pack_id + Math.round(Math.random() * 100);
 
 	let new_pack: Datapack = {
 		file_name: file.name,
@@ -70,9 +74,12 @@ export async function loadDatapack(file: File): Promise<Datapack | string> {
 		structureSets: await getStructureSets(zip),
 	};
 
+	getBiomes(zip, mcmeta.pack.name || pack_id, biomesOut);
+
 	new_pack.instancedConfig = new ConfigClass(new_pack);
 	await writeConfigWidgetsToPage(new_pack.instancedConfig, zip);
 	await writeStructureWidgetsToPage(new_pack);
+	await writeBiomeWidgetsToPage(biomesOut);
 	new_pack.instancedConfig.retrieveValuesFromPage();
 
 	console.info(`Created new datapack with ID: ${pack_id}`);
@@ -137,4 +144,10 @@ async function writeStructureWidgetsToPage(datapack: Datapack) {
 	widgets.forEach((element) => {
 		screen.appendChild(element);
 	});
+}
+
+async function writeBiomeWidgetsToPage(biomes: Record<string, Biome>) {
+	const widgets: Array<DocumentFragment> = await createBiomeWidgetsHtml(biomes);
+	const screen = document.getElementById("biomes-screen")!;
+	screen.replaceChildren(...widgets);
 }
