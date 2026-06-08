@@ -58,7 +58,7 @@ export async function loadDatapack(
 	if (modules.has(Modules.DPCONFIG)) config = await loadDpConfig(zip);
 
 	let pack_id = mcmeta.pack.id || file.name;
-	// pack_id = pack_id + Math.round(Math.random() * 100);
+	pack_id += (Math.random() + 1).toString(36).substring(2);
 
 	let new_pack: Datapack = {
 		file_name: file.name,
@@ -74,7 +74,12 @@ export async function loadDatapack(
 		structureSets: await getStructureSets(zip),
 	};
 
-	getBiomes(zip, mcmeta.pack.name || pack_id, biomesOut);
+	let packLabel = mcmeta.pack.name || mcmeta.pack.id || file.name;
+	if (packLabel === packLabel.toLowerCase()) {
+		packLabel = packLabel.charAt(0).toUpperCase() + packLabel.slice(1);
+	}
+
+	getBiomes(zip, pack_id, packLabel, biomesOut);
 
 	new_pack.instancedConfig = new ConfigClass(new_pack);
 	await writeConfigWidgetsToPage(new_pack.instancedConfig, zip);

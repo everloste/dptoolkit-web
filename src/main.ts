@@ -191,12 +191,12 @@ function exportButtonClicked() {
 	datapackStore.getAll().forEach((datapack) => {
 		datapack.instancedConfig?.apply(); // this queues changes
 
-		const packBiomeName = (datapack.mcmeta as any)?.pack?.name || datapack.id;
+		const packBiomeId = datapack.id;
 
 		Object.entries(biomes).forEach(([biomeId, biome]) => {
 			if (!biome.changed || !biome.preference || biome.preference === "Load order") return;
-			if (!biome.packs.includes(packBiomeName)) return;
-			if (biome.preference === packBiomeName) return;
+			if (!biome.packIds.includes(packBiomeId)) return;
+			if (biome.preference === packBiomeId) return;
 
 			const biomeSplit = biomeId.split(":");
 			const biomePath = `/${biomeSplit[0]}/worldgen/biome/${biomeSplit[1]}.json`;
