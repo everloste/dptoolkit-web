@@ -9,17 +9,17 @@
 	},
 	"dependencies": {
 		"accessible-colors": "^1.0.8",
-		"dompurify": "^3.4.5",
-		"js-yaml": "^4.1.1",
+		"dompurify": "^3.4.8",
+		"js-yaml": "^4.2.0",
 		"jszip": "^3.10.1",
 		"typescript-event-target": "^1.1.1",
-		"vite": "^8.0.14",
+		"vite": "^8.0.16",
 		"vite-plugin-handlebars": "^2.0.0"
 	},
 	"devDependencies": {
 		"@types/js-yaml": "^4.0.9",
-		"@types/node": "^25.9.1",
-		"oxfmt": "^0.51.0",
+		"@types/node": "^25.9.2",
+		"oxfmt": "^0.53.0",
 		"typescript": "~6.0.3"
 	}
 }
