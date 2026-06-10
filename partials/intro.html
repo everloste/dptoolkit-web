@@ -1,20 +1,25 @@
 <dialog id="intro-dialog">
-	<img src="title.png" alt="Datapack Toolkit" />
-	<p>Datapack Toolkit is an easy-to-use Minecraft worldgen datapack configuration tool.</p>
-	<p>
-		This version is early in development, and currently only supports custom datapack configuration
-		screens.
-	</p>
-	<p>Also planned to support:</p>
-	<ul>
-		<li>Picking biome definition providers from a set of packs</li>
-		<li>Editing structure set placement</li>
-	</ul>
-	<p>
-		This tool is in no way associated with Minecraft or Mojang Studios. Creators of datapacks are
-		not liable for their functionality after you modify them.
-	</p>
-	<div class="button-container">
-		<button type="button">Ok! Let me configure</button>
+	<div id="intro-contents">
+		<img src="title.png" alt="Datapack Toolkit" />
+		<p>Datapack Toolkit is an easy-to-use Minecraft worldgen datapack configuration tool.</p>
+		<p>
+			This version is still early in development, and as such you may encounter bugs - please report
+			them to us!
+		</p>
+		<p>
+			This tool is in no way associated with Minecraft or Mojang Studios. Creators of datapacks are
+			not liable for their functionality after you modify them.
+		</p>
+		<div class="button-container">
+			<button type="button">Ok! Let me configure</button>
+		</div>
 	</div>
 </dialog>
+
+<style>
+	#intro-contents {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+</style>

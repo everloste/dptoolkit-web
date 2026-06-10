@@ -1,5 +1,5 @@
 export function showIntroIfNotShown() {
-	const currentIntroVersion = 0;
+	const currentIntroVersion = 1;
 
 	const introDialog = document.getElementById("intro-dialog") as HTMLDialogElement;
 	const closeIntroButton = introDialog.querySelector("button") as HTMLButtonElement;

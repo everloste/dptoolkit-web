@@ -23,7 +23,7 @@ dialog {
 	background: var(--background);
 	border: var(--border-width) solid var(--background-above);
 
-	max-width: 35rem;
+	max-width: 30rem;
 	padding: 1.5em;
 
 	h1 {

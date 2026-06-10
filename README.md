@@ -2,10 +2,9 @@
 
 Datapack Toolkit is an easy-to-use Minecraft worldgen datapack configuration tool.
 
-This version is early in development, and currently only supports custom datapack configuration screens.
+This version is still early in development, and as such you may encounter bugs - please report them to us! We currently support:
 
-Also planned to support:
-
+- Custom datapack configuration screens
 - Picking biome definition providers from a set of packs
 - Editing structure set placement
 
