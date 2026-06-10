@@ -349,7 +349,7 @@ function applyMethodAsChangeToPack(
 	method_input: any,
 	slots: object,
 ) {
-	const method_final_value = processTransformer(method_input, slots, method.transformer);
+	const method_final_value = processTransformer(method_input, slots, method.value);
 	const accessors = readAccessors(method.accessors);
 
 	accessors.forEach((accessor) => {
