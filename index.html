@@ -49,10 +49,38 @@
 			</div>
 
 			<!---------- RIGHT COLUMN ---------->
-			<div id="config-screen" class="editor hidden"></div>
-			<div id="structures-screen" class="editor hidden"></div>
-			<div id="biomes-screen" class="editor hidden"></div>
-			<div id="loot-screen" class="editor hidden">WIP: Coming soon!</div>
+			<div id="config-screen" class="editor hidden">
+				<div class="empty-editor">
+					<div>
+						None of the currently loaded packs<br />
+						provide a {{> svg/datapack }} <b>Datapack Config</b>!
+					</div>
+				</div>
+			</div>
+			<div id="structures-screen" class="editor hidden">
+				<div class="empty-editor">
+					<div>
+						None of the currently loaded packs<br />
+						provide {{> svg/structure }} <b>Structures</b>!
+					</div>
+				</div>
+			</div>
+			<div id="biomes-screen" class="editor hidden">
+				<div class="empty-editor">
+					<div>
+						None of the currently loaded packs<br />
+						provide {{> svg/biome }} <b>Biomes</b>!
+					</div>
+				</div>
+			</div>
+			<div id="loot-screen" class="editor hidden">
+				<div class="empty-editor">
+					<div>
+						{{> svg/loot }} <b>Loot tables</b> are not<br />
+						yet supported - WIP!
+					</div>
+				</div>
+			</div>
 
 			<!-- {{> dialogs/datapack_browser }} -->
 

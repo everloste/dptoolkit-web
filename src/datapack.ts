@@ -58,7 +58,7 @@ export async function loadDatapack(
 	if (modules.has(Modules.DPCONFIG)) config = await loadDpConfig(zip);
 
 	let pack_id = mcmeta.pack.id || file.name;
-	pack_id += (Math.random() + 1).toString(36).substring(2);
+	pack_id += "-" + (Math.random() + 1).toString(36).substring(2);
 
 	let new_pack: Datapack = {
 		file_name: file.name,
@@ -134,10 +134,15 @@ function detectModules(datapackZip: JSZip): Set<Module> {
 
 async function writeConfigWidgetsToPage(configObject: ConfigClass, zip: JSZip) {
 	const widgets: Array<DocumentFragment> = await configObject.createWidgetsHtml(zip);
+	if (widgets.length === 0) return;
 	const screen = document.getElementById("config-screen")!;
-	widgets.forEach((element) => {
-		screen.appendChild(element);
-	});
+
+	if (screen.querySelector(".empty-editor")) screen.replaceChildren(...widgets);
+	else {
+		widgets.forEach((element) => {
+			screen.appendChild(element);
+		});
+	}
 }
 
 async function writeStructureWidgetsToPage(datapack: Datapack) {
@@ -145,14 +150,20 @@ async function writeStructureWidgetsToPage(datapack: Datapack) {
 		datapack.structureSets,
 		datapack.id,
 	);
+	if (widgets.length === 0) return;
 	const screen = document.getElementById("structures-screen")!;
-	widgets.forEach((element) => {
-		screen.appendChild(element);
-	});
+
+	if (screen.querySelector(".empty-editor")) screen.replaceChildren(...widgets);
+	else {
+		widgets.forEach((element) => {
+			screen.appendChild(element);
+		});
+	}
 }
 
 async function writeBiomeWidgetsToPage(biomes: Record<string, Biome>) {
 	const widgets: Array<DocumentFragment> = await createBiomeWidgetsHtml(biomes);
+	if (widgets.length === 0) return;
 	const screen = document.getElementById("biomes-screen")!;
 	screen.replaceChildren(...widgets);
 }
