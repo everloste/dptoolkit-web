@@ -85,7 +85,7 @@ export type SwitchWidget = {
 
 // CONFIG METHOD
 export type ConfigMethod = {
-	value: Transformer;
+	transformer: Transformer;
 	accessors: Array<Accessor>;
 };
 // ACCESSOR
