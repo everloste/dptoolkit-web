@@ -321,7 +321,7 @@ function applyToValue(
 		}
 	}
 	const last_key = keys[keys.length - 1];
-	if (!(last_key in json)) {
+	if (!(last_key in json) && method !== "set") {
 		throw error;
 	} else {
 		const original_value = json[last_key];
