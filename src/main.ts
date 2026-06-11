@@ -39,7 +39,10 @@ async function onFileUploaded(e: Event) {
 
 	if (
 		!validDatapacks.every(
-			(dp) => dp.modules.has(Modules.STRUCTURE_SET) || dp.modules.has(Modules.DPCONFIG),
+			(dp) =>
+				dp.modules.has(Modules.STRUCTURE_SET) ||
+				dp.modules.has(Modules.DPCONFIG) ||
+				dp.modules.has(Modules.BIOME),
 		)
 	) {
 		window.alert(
