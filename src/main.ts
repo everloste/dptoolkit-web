@@ -5,6 +5,7 @@ import { DatapackModifierInstance } from "./datapack_changes";
 import { type DatapackStoreEvents, datapackStore } from "./datapackStore";
 import { showIntroIfNotShown } from "./page_interactions/introDialog";
 import { getExportSettings } from "./page_interactions/settings";
+import type { MCMeta, PackDescription } from "./types/mcmeta";
 
 const fileUploadElement = document.getElementById("input")!;
 fileUploadElement.addEventListener("change", onFileUploaded, { passive: true });
@@ -84,7 +85,7 @@ function createDatapackDisplayElement(dp: Datapack): DocumentFragment {
 	const template = document.getElementById("datapack-template") as HTMLTemplateElement;
 	const clone = template.content.cloneNode(true) as DocumentFragment;
 
-	const { name, description } = getNameAndDescription(dp.mcmeta);
+	const { name, description } = getNameAndDescription(dp.mcmeta, dp.file_name);
 
 	(clone.querySelector(".name") as HTMLElement).innerHTML = name;
 	(clone.querySelector(".description") as HTMLElement).innerHTML = description;
@@ -96,11 +97,14 @@ function createDatapackDisplayElement(dp: Datapack): DocumentFragment {
 	return clone;
 }
 
-function getNameAndDescription(mcmeta: any): {
+function getNameAndDescription(
+	mcmeta: MCMeta,
+	filename: string,
+): {
 	name: string;
 	description: string;
 } {
-	let name = mcmeta.pack.name;
+	let name = mcmeta.pack.name || mcmeta.pack.id || filename;
 	let description = descriptionToDisplayable(mcmeta.pack.description);
 
 	if (!name) {
@@ -119,17 +123,21 @@ function getNameAndDescription(mcmeta: any): {
 	return { name, description };
 }
 
-function descriptionToDisplayable(description: Datapack["description"]): string {
-	if (Array.isArray(description)) {
-		const backgroundColor = document.getElementById("datapack-display")!.style.backgroundColor;
-		return description
-			.map((desc) => ({
-				text: sanitizeHtml(desc.text),
-				color: suggestAAAColorVariant(desc.color, backgroundColor),
-			}))
-			.map((desc) => `<span style="color: ${desc.color}">${desc.text}</span>`)
-			.join("");
-	} else return description.replaceAll("\n", "<br>");
+function descriptionToDisplayable(description: PackDescription): string {
+	let descArray = [];
+	if (Array.isArray(description)) descArray = description;
+	else descArray = [description];
+
+	const backgroundColor = document.getElementById("datapack-display")!.style.backgroundColor;
+	return descArray
+		.map((desc) => {
+			if (typeof desc === "string") return desc.replaceAll("\n", "<br>");
+
+			const text = sanitizeHtml(desc.text);
+			const color = suggestAAAColorVariant(desc.color, backgroundColor);
+			return `<span style="color: ${color}">${text}</span>`;
+		})
+		.join("");
 }
 
 function sanitizeHtml(unsafe: string): string {

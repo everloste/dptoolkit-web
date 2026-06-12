@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { createBiomeWidgetsHtml, getBiomes, type Biome } from "./biomes";
 import { ConfigClass } from "./config";
 import { createStructureWidgetsHtml, getStructureSets, StructureSet } from "./structureSet";
+import type { MCMeta } from "./types/mcmeta";
 
 export interface Datapack {
 	file_name: string;
@@ -15,7 +16,7 @@ export interface Datapack {
 				color: string;
 		  }[];
 	icon: Blob | undefined;
-	mcmeta: Record<string, unknown>;
+	mcmeta: MCMeta;
 	zip: JSZip;
 	rawConfig: undefined | object;
 	instancedConfig: undefined | ConfigClass;
@@ -58,7 +59,7 @@ export async function loadDatapack(
 	if (modules.has(Modules.DPCONFIG)) config = await loadDpConfig(zip);
 
 	let pack_id = mcmeta.pack.id || file.name;
-	pack_id += "-" + (Math.random() + 1).toString(36).substring(2);
+	pack_id += "-" + generateRandomString();
 
 	let new_pack: Datapack = {
 		file_name: file.name,
@@ -90,6 +91,10 @@ export async function loadDatapack(
 	console.info(`Created new datapack with ID: ${pack_id}`);
 
 	return new_pack;
+}
+
+export function generateRandomString() {
+	return (Math.random() + 1).toString(36).substring(2);
 }
 
 async function loadDpConfig(datapackZip: JSZip): Promise<object> {
