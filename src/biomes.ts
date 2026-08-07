@@ -49,13 +49,14 @@ export async function createBiomeWidgetsHtml(biomes: Record<string, Biome>) {
 		biomeIdLabel.textContent = biomeId;
 
 		const selector = clone.querySelector("select") as HTMLSelectElement;
-		selector.replaceChildren(
+		const options = [
 			new Option(loadOrder, loadOrder, biome.preference === null),
-			new Option("Vanilla", "Vanilla"),
+			...(biomeId.startsWith("minecraft:") ? [new Option("Vanilla", "Vanilla")] : []),
 			...biome.packIds.map(
 				(packId, index) => new Option(biome.packLabels[index], packId, packId === biome.preference),
 			),
-		);
+		];
+		selector.replaceChildren(...options);
 
 		selector.addEventListener("change", (ev) => {
 			const value = (ev.target as HTMLSelectElement).value;
