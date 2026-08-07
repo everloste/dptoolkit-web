@@ -1,6 +1,15 @@
 import JSZip from "jszip";
 
-import type { Datapack } from "./datapack";
+import { generateRandomString, type Datapack } from "./datapack";
+import type {
+	Between82MCMeta,
+	MCMeta,
+	OverlayEntry,
+	PackFormat,
+	Post82MCMeta,
+	Post82OverlayEntry,
+	SupportedFormats,
+} from "./types/mcmeta";
 import {
 	BooleanMethods,
 	type DatapackChangeMethod,
@@ -21,6 +30,89 @@ interface DatapackChange {
 interface FileChange {
 	datapack: Datapack;
 	file_path: string;
+}
+
+const LEGACY_PACK_FORMAT_LIMIT = 82;
+
+function getMinSupportedFormat(mcmeta: MCMeta): PackFormat {
+	const pack = mcmeta.pack;
+
+	if ("min_format" in pack) return pack.min_format;
+
+	if (pack.supported_formats) {
+		if (Array.isArray(pack.supported_formats)) return pack.supported_formats[0];
+		else if (
+			typeof pack.supported_formats !== "number" &&
+			"min_inclusive" in pack.supported_formats
+		)
+			return pack.supported_formats.min_inclusive;
+		else return pack.supported_formats;
+	}
+
+	return pack.pack_format;
+}
+
+function getMaxSupportedFormat(mcmeta: MCMeta): PackFormat {
+	const pack = mcmeta.pack;
+
+	if ("max_format" in pack) return pack.max_format;
+
+	if (pack.supported_formats) {
+		if (Array.isArray(pack.supported_formats)) return pack.supported_formats[1];
+		else if (
+			typeof pack.supported_formats !== "number" &&
+			"max_inclusive" in pack.supported_formats
+		)
+			return pack.supported_formats.max_inclusive;
+		else return pack.supported_formats;
+	}
+
+	return pack.pack_format;
+}
+
+function compareFormats(left: PackFormat, right: PackFormat): number {
+	return formatMajor(left) - formatMajor(right);
+}
+
+function laterFormat(left: PackFormat, right: PackFormat): PackFormat {
+	return compareFormats(left, right) >= 0 ? left : right;
+}
+
+function earlierFormat(left: PackFormat, right: PackFormat): PackFormat {
+	return compareFormats(left, right) <= 0 ? left : right;
+}
+
+function formatMajor(format: PackFormat): number {
+	return typeof format === "number" ? format : format[0];
+}
+
+function getLegacyBounds(formats: SupportedFormats): {
+	min: number;
+	max: number;
+} {
+	if (typeof formats === "number") return { min: formats, max: formats };
+	if (Array.isArray(formats)) return { min: formats[0], max: formats[1] };
+	return { min: formats.min_inclusive, max: formats.max_inclusive };
+}
+
+function getOverlayBounds(entry: OverlayEntry): {
+	min: PackFormat;
+	max: PackFormat;
+} {
+	if ("min_format" in entry) return { min: entry.min_format, max: entry.max_format };
+	return getLegacyBounds(entry.formats);
+}
+
+function toLegacyRange(min: PackFormat, max: PackFormat): SupportedFormats {
+	const minMajor = formatMajor(min);
+	const maxMajor = formatMajor(max);
+	return minMajor === maxMajor ? minMajor : [minMajor, maxMajor];
+}
+
+interface CombinedOverlay {
+	entry: OverlayEntry;
+	sourceDatapack: Datapack;
+	targetDirectory: string;
 }
 
 export class DatapackModifier {
@@ -134,23 +226,181 @@ export class DatapackModifier {
 		}
 
 		console.timeEnd("[DatapackModifier] Applied changes to packs");
+		const packIds = Object.keys(packs);
+		if (packIds.length === 0) {
+			console.info("[DatapackModifier] No changed files to export.");
+			this.wipeCache();
+			return;
+		}
 
 		if (export_settings.combinePacks) {
-			await this.saveFile(packs[Object.keys(packs)[0]], export_settings, "Combined Pack.zip");
+			const combinedPack = packs[packIds[0]];
+			const includedDatapacks = datapacks.filter((datapack) => packIds.includes(datapack.id));
+			const overlayEntries = await this.copyCombinedOverlays(includedDatapacks, combinedPack);
+			combinedPack.file(
+				"pack.mcmeta",
+				JSON.stringify(this.mergeMcMeta(includedDatapacks, overlayEntries), null, 2),
+			);
+
+			await this.saveFile(combinedPack, export_settings, "Combined Pack.zip");
 		} else {
 			for (const pack in packs) {
-				if (Object.prototype.hasOwnProperty.call(packs, pack)) {
-					const zip = packs[pack];
-					await this.saveFile(
-						zip,
-						export_settings,
-						datapacks.find((dp) => dp.id === pack)!.file_name,
-					);
-				}
+				const zip = packs[pack];
+				await this.saveFile(
+					zip,
+					export_settings,
+					datapacks.find((dp) => dp.id === pack)!.file_name,
+				);
 			}
 		}
 
 		this.wipeCache();
+	}
+
+	private async copyCombinedOverlays(
+		datapacks: ReadonlyArray<Datapack>,
+		combinedPack: JSZip,
+	): Promise<Post82OverlayEntry[]> {
+		const overlays: CombinedOverlay[] = [];
+		const reservedDirectories = new Set<string>();
+		const combinedPaths = Object.keys(combinedPack.files);
+
+		datapacks.forEach((datapack, datapackIndex) => {
+			const directories = new Map<string, string>();
+
+			for (const entry of datapack.mcmeta.overlays?.entries ?? []) {
+				let targetDirectory = directories.get(entry.directory);
+				if (!targetDirectory) {
+					const baseDirectory = `combined_${datapackIndex}_${directories.size}`;
+					targetDirectory = baseDirectory;
+					let suffix = 1;
+					while (
+						reservedDirectories.has(targetDirectory) ||
+						combinedPaths.some(
+							(path) => path === targetDirectory || path.startsWith(`${targetDirectory}/`),
+						)
+					) {
+						targetDirectory = `${baseDirectory}_${suffix++}`;
+					}
+
+					reservedDirectories.add(targetDirectory);
+					directories.set(entry.directory, targetDirectory);
+				}
+
+				overlays.push({ entry, sourceDatapack: datapack, targetDirectory });
+			}
+		});
+
+		const copiedDirectories = new Set<string>();
+		for (const { entry, sourceDatapack, targetDirectory } of overlays) {
+			const copyKey = `${sourceDatapack.id}:${entry.directory}`;
+			if (copiedDirectories.has(copyKey)) continue;
+
+			copiedDirectories.add(copyKey);
+			await this.copyOverlayDirectory(
+				sourceDatapack,
+				entry.directory,
+				targetDirectory,
+				combinedPack,
+			);
+		}
+
+		const needsLegacyFormats = overlays.some(
+			({ entry }) => formatMajor(getOverlayBounds(entry).min) < LEGACY_PACK_FORMAT_LIMIT,
+		);
+
+		return overlays.map(({ entry, targetDirectory }): Post82OverlayEntry => {
+			const { min, max } = getOverlayBounds(entry);
+			const normalizedEntry: Post82OverlayEntry = {
+				directory: targetDirectory,
+				min_format: min,
+				max_format: max,
+			};
+			if (needsLegacyFormats) normalizedEntry.formats = toLegacyRange(min, max);
+			return normalizedEntry;
+		});
+	}
+
+	private async copyOverlayDirectory(
+		datapack: Datapack,
+		sourceDirectory: string,
+		targetDirectory: string,
+		combinedPack: JSZip,
+	) {
+		const sourcePrefix = `${sourceDirectory.replace(/\/+$/, "")}/`;
+		const targetPrefix = `${targetDirectory}/`;
+		const copiedFiles = new Set<string>();
+
+		for (const targetPath of Object.keys(combinedPack.files)) {
+			if (targetPath === targetDirectory || targetPath.startsWith(targetPrefix)) {
+				combinedPack.remove(targetPath);
+			}
+		}
+
+		for (const [sourcePath, sourceFile] of Object.entries(datapack.zip.files)) {
+			if (sourceFile.dir || !sourcePath.startsWith(sourcePrefix)) continue;
+
+			const relativePath = sourcePath.slice(sourcePrefix.length);
+			const cachedPath = this.cacheKey(datapack.id, sourcePath);
+			const targetPath = `${targetPrefix}${relativePath}`;
+			copiedFiles.add(sourcePath);
+
+			if (Object.prototype.hasOwnProperty.call(this.changeCache, cachedPath)) {
+				const changedFile = this.changeCache[cachedPath];
+				if (changedFile !== null) combinedPack.file(targetPath, changedFile);
+			} else {
+				combinedPack.file(targetPath, await sourceFile.async("uint8array"), { binary: true });
+			}
+		}
+
+		const cachePrefix = this.cacheKey(datapack.id, sourcePrefix);
+		for (const [cachedPath, changedFile] of Object.entries(this.changeCache)) {
+			if (!cachedPath.startsWith(cachePrefix)) continue;
+
+			const sourcePath = cachedPath.slice(datapack.id.length + 1);
+			if (copiedFiles.has(sourcePath) || changedFile === null) continue;
+
+			combinedPack.file(`${targetPrefix}${sourcePath.slice(sourcePrefix.length)}`, changedFile);
+		}
+	}
+
+	private mergeMcMeta(
+		datapacks: ReadonlyArray<Datapack>,
+		overlayEntries: ReadonlyArray<Post82OverlayEntry>,
+	): MCMeta {
+		const packNames = datapacks.map(
+			({ mcmeta, file_name }) => mcmeta.pack.name || mcmeta.pack.id || file_name,
+		);
+
+		const minSupportedVersion = datapacks
+			.map(({ mcmeta }) => getMinSupportedFormat(mcmeta))
+			.reduce(laterFormat, 1);
+		const maxSupportedVersion = datapacks
+			.map(({ mcmeta }) => getMaxSupportedFormat(mcmeta))
+			.reduce(earlierFormat);
+		const supportsLegacyFormats = formatMajor(minSupportedVersion) < LEGACY_PACK_FORMAT_LIMIT;
+		const baseMcMeta = {
+			pack: {
+				name: "Combined pack",
+				id: `combined-${generateRandomString()}`,
+				description: packNames.join(", "),
+				min_format: minSupportedVersion,
+				max_format: maxSupportedVersion,
+			},
+			...(overlayEntries.length > 0 ? { overlays: { entries: [...overlayEntries] } } : {}),
+		};
+
+		if (!supportsLegacyFormats) return baseMcMeta satisfies Post82MCMeta;
+
+		const combinedMcMeta: Between82MCMeta = {
+			...baseMcMeta,
+			pack: {
+				...baseMcMeta.pack,
+				pack_format: formatMajor(minSupportedVersion),
+				supported_formats: [formatMajor(minSupportedVersion), formatMajor(maxSupportedVersion)],
+			},
+		};
+		return combinedMcMeta;
 	}
 
 	public async saveFile(zip: JSZip, export_settings: ExportSettings, file_name: string) {

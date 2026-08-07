@@ -1,7 +1,10 @@
-interface Pre82SupportedFormats {
+export interface Pre82SupportedFormats {
 	min_inclusive: number;
 	max_inclusive: number;
 }
+
+export type PackFormat = number | [number] | [number, number];
+export type SupportedFormats = number | [number, number] | Pre82SupportedFormats;
 
 interface TextComponent {
 	text: string;
@@ -21,29 +24,41 @@ interface PackBase {
 export type PackDescription = string | TextComponent | (string | TextComponent)[];
 
 type Pre82Format = {
-	supported_formats?: number | [number, number] | Pre82SupportedFormats;
+	supported_formats?: SupportedFormats;
 };
 
 type Post82Format = {
-	min_format: number | [number, number];
-	max_format: number | [number, number];
+	min_format: PackFormat;
+	max_format: PackFormat;
 };
+
+export type Pre82OverlayEntry = {
+	directory: string;
+	formats: SupportedFormats;
+};
+
+export type Post82OverlayEntry = Post82Format & {
+	directory: string;
+	formats?: SupportedFormats;
+};
+
+export type OverlayEntry = Pre82OverlayEntry | Post82OverlayEntry;
 
 export interface Post82MCMeta {
 	pack: Post82Format & PackBase;
 	filter?: never;
 	features?: { enabled: unknown[] };
 	overlays?: {
-		entries: Post82Format & { directory: string }[];
+		entries: Post82OverlayEntry[];
 	};
 }
 
 export interface Between82MCMeta {
-	pack: Pre82Format & Post82Format & PackBase;
+	pack: Pre82Format & Post82Format & PackBase & { pack_format: number };
 	filter?: never;
 	features?: { enabled: unknown[] };
 	overlays?: {
-		entries: Pre82Format & Post82Format & { directory: string }[];
+		entries: Post82OverlayEntry[];
 	};
 }
 
@@ -52,7 +67,7 @@ export interface Pre82MCMeta {
 	filter?: never;
 	features?: { enabled: unknown[] };
 	overlays?: {
-		entries: Pre82Format & { directory: string }[];
+		entries: Pre82OverlayEntry[];
 	};
 }
 
