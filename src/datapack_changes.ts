@@ -229,11 +229,12 @@ export class DatapackModifier {
 		const packIds = Object.keys(packs);
 		if (packIds.length === 0) {
 			console.info("[DatapackModifier] No changed files to export.");
+			alert("No changes to export! Make some changes, then export :D");
 			this.wipeCache();
 			return;
 		}
 
-		if (export_settings.combinePacks) {
+		if (export_settings.combinePacks && packIds.length > 1) {
 			const combinedPack = packs[packIds[0]];
 			const includedDatapacks = datapacks.filter((datapack) => packIds.includes(datapack.id));
 			const overlayEntries = await this.copyCombinedOverlays(includedDatapacks, combinedPack);
