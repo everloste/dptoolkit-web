@@ -247,7 +247,7 @@ function exportButtonClicked() {
 		}
 	});
 
-	DatapackModifierInstance.applyChanges(datapackStore.getAll(), export_settings).then(() => {
+	DatapackModifierInstance.applyChanges(datapackStore.getAll(), export_settings).finally(() => {
 		// this applies changes and wipes changes
 		document.getElementById("progress-indicator")!.hidden = true;
 	});

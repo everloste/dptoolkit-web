@@ -160,17 +160,38 @@ export class DatapackModifier {
 
 	public async applyChanges(datapacks: ReadonlyArray<Datapack>, export_settings: ExportSettings) {
 		console.time("[DatapackModifier] Applied changes to packs");
+		try {
+			await this.exportChanges(datapacks, export_settings);
+		} finally {
+			console.timeEnd("[DatapackModifier] Applied changes to packs");
+			this.wipeCache();
+		}
+	}
+
+	private async exportChanges(datapacks: ReadonlyArray<Datapack>, export_settings: ExportSettings) {
 		let progress = 0;
 		let progress_max = this.changeQueue.length + this.disableQueue.length;
 
 		const progressIndicator = document.getElementById("progress-indicator-percentage")!;
+		const failedChanges: string[] = [];
 
 		// Apply changes to files
 		for (const change of this.changeQueue) {
-			await this.applyChange(change).then(() => {
-				progress++;
-				progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
-			});
+			try {
+				await this.applyChange(change);
+			} catch (error) {
+				// skip changes that don't work (eg outdated dpconfig) instead of failing whole export
+				console.error(
+					`[DatapackModifier] Couldn't apply change to ${change.datapack.id}:${change.file_path}`,
+					error,
+				);
+				failedChanges.push(
+					`${change.datapack.file_name}: ${change.file_path} -> ${change.value_path}`,
+				);
+			}
+
+			progress++;
+			progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
 		}
 
 		for (const disable of this.disableQueue) {
@@ -225,12 +246,15 @@ export class DatapackModifier {
 			} else throw new Error("what");
 		}
 
-		console.timeEnd("[DatapackModifier] Applied changes to packs");
+		const failureMessage =
+			failedChanges.length > 0
+				? `Some changes couldn't be applied, likely because the datapack's config doesn't match its files:\n\n${failedChanges.join("\n")}`
+				: null;
+
 		const packIds = Object.keys(packs);
 		if (packIds.length === 0) {
 			console.info("[DatapackModifier] No changed files to export.");
-			alert("No changes to export! Make some changes, then export :D");
-			this.wipeCache();
+			alert(failureMessage ?? "No changes to export! Make some changes, then export :D");
 			return;
 		}
 
@@ -255,7 +279,7 @@ export class DatapackModifier {
 			}
 		}
 
-		this.wipeCache();
+		if (failureMessage) alert(failureMessage);
 	}
 
 	private async copyCombinedOverlays(
