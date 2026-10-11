@@ -490,7 +490,7 @@ export class DatapackModifier {
 		throw new Error("Trying to retrieve a file from cache that isn't there");
 	}
 
-	private wipeCache() {
+	public wipeCache() {
 		this.changeCache = {};
 		this.changeQueue = [];
 		this.disableQueue = [];

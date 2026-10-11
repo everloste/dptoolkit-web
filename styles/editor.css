@@ -112,7 +112,7 @@
 	}
 }
 
-.widget-input:not([type="checkbox"]) {
+.widget-input:not([type="checkbox"], [type="number"]) {
 	width: 15vw;
 }
 

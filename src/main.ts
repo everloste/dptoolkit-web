@@ -191,12 +191,24 @@ for (const collapsible of collapsibles) {
 const exportButtonElement = document.getElementById("export-button")!;
 exportButtonElement.addEventListener("click", exportButtonClicked, { passive: true });
 
-function exportButtonClicked() {
+async function exportButtonClicked() {
 	console.debug("Datapack export beginning...");
-	document.getElementById("progress-indicator")!.hidden = false;
+	const progressIndicator = document.getElementById("progress-indicator")!;
+	progressIndicator.hidden = false;
 
-	const export_settings = getExportSettings();
+	try {
+		queueExportChanges();
+		await DatapackModifierInstance.applyChanges(datapackStore.getAll(), getExportSettings());
+	} catch (error) {
+		console.error("Datapack export failed", error);
+		DatapackModifierInstance.wipeCache();
+		window.alert(`Export failed:\n\n${error}`);
+	} finally {
+		progressIndicator.hidden = true;
+	}
+}
 
+function queueExportChanges() {
 	const biomes = datapackStore.getBiomes();
 
 	datapackStore.getAll().forEach((datapack) => {
@@ -245,11 +257,6 @@ function exportButtonClicked() {
 				application_method: "set",
 			});
 		}
-	});
-
-	DatapackModifierInstance.applyChanges(datapackStore.getAll(), export_settings).finally(() => {
-		// this applies changes and wipes changes
-		document.getElementById("progress-indicator")!.hidden = true;
 	});
 }
 
