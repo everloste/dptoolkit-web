@@ -174,6 +174,14 @@ export class DatapackModifier {
 
 		const progressIndicator = document.getElementById("progress-indicator-percentage")!;
 		const failedChanges: string[] = [];
+		const disabledFiles: string[] = [];
+
+		for (const disable of this.disableQueue) {
+			this.applyDisable(disable);
+
+			progress++;
+			progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
+		}
 
 		// Apply changes to files
 		for (const change of this.changeQueue) {
@@ -194,19 +202,13 @@ export class DatapackModifier {
 			progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
 		}
 
-		for (const disable of this.disableQueue) {
-			await this.applyDisable(disable);
-
-			progress++;
-			progressIndicator.innerText = Math.round((progress / progress_max) * 100).toString();
-		}
-
 		// Cache with changes created -> write to zip
 		let packs: { [key: string]: JSZip } = {};
 
 		for (const file_path in this.changeCache) {
 			if (Object.prototype.hasOwnProperty.call(this.changeCache, file_path)) {
 				const pack_id = file_path.split(":")[0];
+				const datapack = datapacks.find((dp) => dp.id === pack_id)!;
 
 				if (!(pack_id in packs)) {
 					// If packs are to combine, create one zip at the beginning of the object and refer all other pointers to it:
@@ -222,10 +224,12 @@ export class DatapackModifier {
 
 					// And if we ought to include unmodified files as well, we have to copy them over:
 					if (export_settings.modifiedOnly == false) {
-						const dpZip = datapacks.find((dp) => dp.id === pack_id)!.zip;
+						const dpZip = datapack.zip;
 						progress_max += Object.keys(dpZip.files).length;
 
 						for (const file_name in dpZip.files) {
+							// disabled files are written below as <path>.disabled
+							if (this.changeCache[this.cacheKey(pack_id, file_name)] === null) continue;
 							if (file_name in dpZip.files) {
 								const file_content = await dpZip.files[file_name].async("blob");
 								progress++;
@@ -238,7 +242,13 @@ export class DatapackModifier {
 					}
 				}
 
-				if (this.changeCache[file_path] === null) continue;
+				if (this.changeCache[file_path] === null) {
+					const disabled_path = file_path.split(":")[1];
+					const original = await datapack.zip.files[disabled_path].async("uint8array");
+					packs[pack_id].file(`${disabled_path}.disabled`, original, { binary: true });
+					disabledFiles.push(`${datapack.file_name}: ${disabled_path}`);
+					continue;
+				}
 				// Finally, write changed file:
 				packs[pack_id].file(file_path.split(":")[1], this.changeCache[file_path], {
 					binary: false,
@@ -249,6 +259,10 @@ export class DatapackModifier {
 		const failureMessage =
 			failedChanges.length > 0
 				? `Some changes couldn't be applied, likely because the datapack's config doesn't match its files:\n\n${failedChanges.join("\n")}`
+				: null;
+		const disabledMessage =
+			export_settings.modifiedOnly && disabledFiles.length > 0
+				? `The export includes disabled copies of these files. Delete the originals from the pack for them to take effect:\n\n${disabledFiles.join("\n")}`
 				: null;
 
 		const packIds = Object.keys(packs);
@@ -279,6 +293,7 @@ export class DatapackModifier {
 			}
 		}
 
+		if (disabledMessage) alert(disabledMessage);
 		if (failureMessage) alert(failureMessage);
 	}
 
@@ -373,6 +388,10 @@ export class DatapackModifier {
 			if (Object.prototype.hasOwnProperty.call(this.changeCache, cachedPath)) {
 				const changedFile = this.changeCache[cachedPath];
 				if (changedFile !== null) combinedPack.file(targetPath, changedFile);
+				else
+					combinedPack.file(`${targetPath}.disabled`, await sourceFile.async("uint8array"), {
+						binary: true,
+					});
 			} else {
 				combinedPack.file(targetPath, await sourceFile.async("uint8array"), { binary: true });
 			}
@@ -530,37 +549,23 @@ export class DatapackModifier {
 		}
 	}
 
+	private resolveFiles(datapack: Datapack, file_path: string): string[] {
+		if (file_path.startsWith("./")) return [file_path.slice(2)];
+		return Object.keys(datapack.zip.files).filter((file_name) => file_name.endsWith(file_path));
+	}
+
 	private async applyChange(change: DatapackChange) {
-		if (change.file_path.startsWith("./")) {
-			const file_name = change.file_path.slice(2);
+		for (const file_name of this.resolveFiles(change.datapack, change.file_path)) {
 			await this.applyChangeToFile(file_name, change);
-		} else {
-			const files_in_pack: string[] = Object.keys(change.datapack.zip.files);
-
-			for (const file_name of files_in_pack) {
-				if (file_name.endsWith(change.file_path)) {
-					await this.applyChangeToFile(file_name, change);
-				}
-			}
 		}
 	}
 
-	private async applyDisable(change: FileChange) {
-		const filesInPack: string[] = Object.keys(change.datapack.zip.files);
-		for (const fileName of filesInPack) {
-			if (fileName.endsWith(change.file_path)) {
-				await this.rename(change.datapack.zip, fileName, `${fileName}.disabled`);
-				this.addToCache(change.datapack.id, fileName, null);
-			}
+	private applyDisable(change: FileChange) {
+		for (const file_name of this.resolveFiles(change.datapack, change.file_path)) {
+			const file = change.datapack.zip.files[file_name];
+			if (!file || file.dir) continue;
+			this.addToCache(change.datapack.id, file_name, null, true);
 		}
-	}
-
-	private async rename(zip: JSZip, from: string, to: string) {
-		const old = zip.file(from)!;
-
-		const content = await old.async("uint8array");
-		zip.remove(old.name);
-		zip.file(to, content);
 	}
 	// #endregion
 }
